@@ -14,7 +14,7 @@ export default function App() {
       <Stack.Navigator 
         initialRouteName="TelaInicial"
       >
-        <Stack.Screen name="TelaInicial" component={TelaInicial} />
+        <Stack.Screen name="TelaInicial" component={TelaInicial} options={{title: 'Home', headerTitleAlign: 'center'}} />
 
       </Stack.Navigator>
     </NavigationContainer>
