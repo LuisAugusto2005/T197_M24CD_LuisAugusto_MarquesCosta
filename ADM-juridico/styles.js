@@ -33,37 +33,43 @@ container: {
     backgroundColor: '#fff',
     padding: 20,
     paddingTop: 60,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  formBox: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 6,
-    padding: 10,
-    marginBottom: 15,
-  },
-  button: {
-    backgroundColor: '#333',
-    padding: 12,
-    borderRadius: 6,
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-  },
+},
+
+title: {
+  fontSize: 22,
+  fontWeight: 'bold',
+  textAlign: 'center',
+  marginBottom: 20,
+},
+
+formBox: {
+  backgroundColor: '#fff',
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 10,
+  padding: 20,
+},
+
+input: {
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: 6,
+  padding: 10,
+  marginBottom: 15,
+},
+
+button: {
+  backgroundColor: '#333',
+  padding: 12,
+  borderRadius: 6,
+  marginTop: 10,
+},
+
+buttonText: {
+  color: '#fff',
+  textAlign: 'center',
+},
+
 });
 
 export default styles;
