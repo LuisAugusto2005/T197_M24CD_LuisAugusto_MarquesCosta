@@ -1,4 +1,4 @@
-import { Text, View, Image, Linking, TouchableOpacity } from 'react-native';
+import { Text, View, Image, TouchableOpacity } from 'react-native';
 import styles from '../styles';
 
 function telaInicial({navigation}) {
@@ -6,7 +6,7 @@ function telaInicial({navigation}) {
  <View style ={styles.container_principal}>
 
 <View>
- <Image source={require('../assets/Logo_LS.png')} style={{flexDirection:"flex-start",alignItems:'center',justifyContent:'center'}} />
+ <Image source={require('../assets/snack-icon.png')} style={{flexDirection:"flex-start",alignItems:'center',justifyContent:'center'}} />
  <View style={{flexDirection:"center",alignItems:'center',justifyContent:'center'}}>
   <Text> </Text>
   <Text style={{fontWeight: 'bold'}}> Leandro Silva</Text>
@@ -18,7 +18,7 @@ function telaInicial({navigation}) {
 
 <View style={styles.botao}>
 <TouchableOpacity>
-<Text style={styles.texto_botao}> Registrar-s </Text>
+<Text style={styles.texto_botao}> Registrar-se </Text>
 </TouchableOpacity>
 </View>
 
