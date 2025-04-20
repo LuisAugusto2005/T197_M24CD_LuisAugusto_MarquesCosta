@@ -23,7 +23,7 @@ function telaInicial({navigation}) {
 </View>
 
 <View style={styles.botao}>
-<TouchableOpacity>
+<TouchableOpacity onPress={() => navigation.navigate('TelaLogIn')}>
 <Text style={styles.texto_botao}> Entrar </Text>
 </TouchableOpacity>
 </View>

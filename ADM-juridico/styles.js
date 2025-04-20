@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 },
 
  botao:{
- backgroundColor: '#0e76a8',
+ backgroundColor: '#333',
  width: 100,
  height: 40,
  alignItems: 'center',
