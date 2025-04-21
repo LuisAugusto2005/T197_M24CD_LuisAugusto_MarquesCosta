@@ -1,12 +1,78 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+//import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
+
 import styles from '../styles';
+import { auth, db, storage } from '../firebaseconfig';
 
 export default function SignIn() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
+  const [image, setImage] = useState(null);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleRegister = async () => {
+    //const auth = getAuth(app);
+    //const db = getFirestore(app);
+    //const storage = getStorage(app);
+
+    try {
+      // Cria o usuário no Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
+
+      let photoURL = null;
+
+/*
+      if (image) {
+        const response = await fetch(image);
+        const blob = await response.blob();
+
+        const storageRef = ref(storage, `users/${user.uid}/profile.jpg`);
+        await uploadBytes(storageRef, blob);
+
+        photoURL = await getDownloadURL(storageRef);
+      }
+*/
+
+      await updateProfile(user, {
+        displayName: nome,
+        //photoURL: photoURL,
+      });
+
+      // Salva dados adicionais no Firestore
+      await addDoc(collection(db, 'usuarios'), {
+        uid: user.uid,
+        nome,
+        email,
+        cpf,
+        //photoURL,
+        criadoEm: new Date().toISOString(),
+      });
+
+      alert('Usuário registrado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao registrar:', error.message);
+      alert('Erro: ' + error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -45,11 +111,15 @@ export default function SignIn() {
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.button}>
+        {image && (
+          <Image source={{ uri: image }} style={{ width: 100, height: 100, marginBottom: 10, borderRadius: 10 }} />
+        )}
+
+        <TouchableOpacity style={styles.button} onPress={pickImage}>
           <Text style={styles.buttonText}>Adicionar Foto</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Registrar</Text>
         </TouchableOpacity>
       </View>

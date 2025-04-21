@@ -1,10 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import styles from '../styles';
 
-export default function LogIn() {
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../firebaseconfig';
+
+export default function LogIn({navigation}) {
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
+
+  const handleLogin = async () => {
+    //const auth = getAuth(app);
+    //const db = getFirestore(app);
+
+    try {
+      const q = query(collection(db, 'usuarios'), where('cpf', '==', cpf));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        Alert.alert('Erro', 'CPF não encontrado.');
+        return;
+      }
+
+      const userData = querySnapshot.docs[0].data();
+      const email = userData.email;
+      const nome = userData.nome;
+
+      await signInWithEmailAndPassword(auth, email, senha);
+
+      //Alert.alert('Bem-vindo!', `Olá, ${nome}! Você entrou com sucesso.`);
+      navigation.navigate('TelaPerfil');
+
+    } catch (error) {
+      console.error('Erro ao fazer login:', error.message);
+      Alert.alert('Erro ao entrar', 'Verifique CPF e senha.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -28,7 +60,7 @@ export default function LogIn() {
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
 
