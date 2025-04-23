@@ -66,7 +66,7 @@ export default function LogIn({navigation}) {
 
         <Text>Não tem conta?</Text>
 
-        <TouchableOpacity style={styles.button} onPress={navigation.navigate('TelaSignIn')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TelaSignIn')}>
           <Text style={styles.buttonText}>Registrar-se</Text>
         </TouchableOpacity>
 
