@@ -15,13 +15,13 @@ function telaInicial({navigation}) {
  </View>
 </View>
 
-/*
+{/* 
 <View style={[styles.botao, {marginBottom: 15}]}>
 <TouchableOpacity onPress={() => navigation.navigate('TelaSignIn')}>
 <Text style={styles.texto_botao}> Registrar-se </Text>
 </TouchableOpacity>
 </View>
-*/
+ */}
 
 <View style={styles.botao}>
 <TouchableOpacity onPress={() => navigation.navigate('TelaLogIn')}>
