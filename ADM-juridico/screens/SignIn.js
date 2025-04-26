@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 //import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { supabase } from '../supabaseconfig';
 
 import styles from '../styles';
 import { auth, db, storage } from '../firebaseconfig';
@@ -40,21 +41,38 @@ export default function SignIn() {
 
       let photoURL = null;
 
-/*
+
       if (image) {
+        // Upload da imagem para o Supabase
         const response = await fetch(image);
         const blob = await response.blob();
+        
+        const fileName = `profile_${user.uid}_${Date.now()}.jpg`; // Nome único
 
-        const storageRef = ref(storage, `users/${user.uid}/profile.jpg`);
-        await uploadBytes(storageRef, blob);
+        const { data, error } = await supabase
+          .storage
+          .from('profile-pictures') // nome do seu bucket
+          .upload(fileName, blob, {
+            contentType: 'image/jpeg',
+          });
 
-        photoURL = await getDownloadURL(storageRef);
+        if (error) {
+          console.error('Erro ao enviar imagem:', error.message);
+        } else {
+          // Pega a URL pública
+          const { data: publicData } = supabase
+            .storage
+            .from('profile-pictures')
+            .getPublicUrl(fileName);
+
+          photoURL = publicData.publicUrl;
+        }
       }
-*/
+
 
       await updateProfile(user, {
         displayName: nome,
-        //photoURL: photoURL,
+        photoURL: photoURL,
       });
 
       // Salva dados adicionais no Firestore
@@ -62,8 +80,8 @@ export default function SignIn() {
         uid: user.uid,
         nome,
         email,
-        cpf,
-        //photoURL,
+        //cpf, //teste
+        photoURL,
         criadoEm: new Date().toISOString(),
       });
 
