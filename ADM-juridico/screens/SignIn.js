@@ -44,8 +44,11 @@ export default function SignIn() {
 
       if (image) {
         // Upload da imagem para o Supabase
-        const response = await fetch(image);
-        const blob = await response.blob();
+        const getBlobFromUri = async (uri) => {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          return blob;
+        };
         
         const fileName = `profile_${user.uid}_${Date.now()}.jpg`; // Nome único
 
@@ -55,12 +58,13 @@ export default function SignIn() {
           .upload(fileName, blob, {
             contentType: 'image/jpeg',
           });
+          const blob = await getBlobFromUri(image);
 
         if (error) {
           console.error('Erro ao enviar imagem:', error.message);
         } else {
           // Pega a URL pública
-          const { data: publicData } = supabase
+          const { data: publicData } = await supabase
             .storage
             .from('profile-pictures')
             .getPublicUrl(fileName);
@@ -80,7 +84,7 @@ export default function SignIn() {
         uid: user.uid,
         nome,
         email,
-        //cpf, //teste
+        cpf, //teste
         photoURL,
         criadoEm: new Date().toISOString(),
       });

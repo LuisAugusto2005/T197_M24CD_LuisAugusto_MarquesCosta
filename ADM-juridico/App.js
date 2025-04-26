@@ -17,8 +17,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        // initialRouteName="TelaLogIn"
-        initialRouteName="TelaSupaTeste"
+        initialRouteName="TelaLogIn"
+        //initialRouteName="TelaSupaTeste"
       >
         <Stack.Screen name="TelaInicial" component={TelaInicial} options={{title: 'Home', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaSignIn" component={TelaSignIn} options={{title: 'Sign-In', headerTitleAlign: 'center'}} />

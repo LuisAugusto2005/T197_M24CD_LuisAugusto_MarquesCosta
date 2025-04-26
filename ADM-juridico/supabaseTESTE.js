@@ -15,10 +15,10 @@ export default function TesteStorage() {
           .list('', {
             limit: 10, // opcional: limitar a quantidade para teste
             offset: 0,
-            sortBy: { column: 'name', order: 'asc' },
+            sortBy: { column: 'name', order: 'asc' },   
           });
 
-        if (error) {
+        if (error) {    
           console.error('Erro ao listar arquivos:', error.message);
         } else {
           console.log('Arquivos encontrados:', data);
