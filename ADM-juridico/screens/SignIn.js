@@ -54,16 +54,16 @@ export default function SignIn() {
 
         const { data, error } = await supabase
           .storage
-          .from('profile-pictures') // nome do seu bucket
+          .from('profile-pictures') // nome do bucket
           .upload(fileName, blob, {
             contentType: 'image/jpeg',
           });
-          const blob = await getBlobFromUri(image);
+          const blob = await getBlobFromUri(image); //<-- se mudar a posição de isso aqui dá erro
 
         if (error) {
           console.error('Erro ao enviar imagem:', error.message);
         } else {
-          // Pega a URL pública
+          // pega a URL pública
           const { data: publicData } = await supabase
             .storage
             .from('profile-pictures')
@@ -79,12 +79,12 @@ export default function SignIn() {
         photoURL: photoURL,
       });
 
-      // Salva dados adicionais no Firestore
+      // salva dados adicionais no Firestore
       await addDoc(collection(db, 'usuarios'), {
         uid: user.uid,
         nome,
         email,
-        cpf, //teste
+        cpf,
         photoURL,
         criadoEm: new Date().toISOString(),
       });
