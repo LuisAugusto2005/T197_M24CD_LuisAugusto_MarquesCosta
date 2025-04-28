@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { auth } from '../firebaseconfig';
 import styles from '../styles';
@@ -36,6 +36,14 @@ export default function Perfil() {
       />
       <Text style={perfilStyles.nome}>{userData.nome}</Text>
       <Text style={perfilStyles.email}>{userData.email}</Text>
+
+      <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Abrir Processo</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Lista de Processos</Text>
+      </TouchableOpacity>
     </View>
   );
 }

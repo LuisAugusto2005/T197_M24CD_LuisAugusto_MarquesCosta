@@ -86,6 +86,8 @@
           displayName: nome,
           photoURL: photoURL,
         });
+
+        console.log(photoURL);
   
         // Salva os dados no Firestore
         await addDoc(collection(db, 'usuarios'), {
