@@ -7,6 +7,8 @@ import TelaSignIn from './screens/SignIn'
 import TelaLogIn from './screens/LogIn'
 import TelaPerfil from './screens/Perfil'
 
+import TelaSupaTeste from './supabaseTESTE'
+
 
 // Criação do Stack Navigator
 const Stack = createStackNavigator();
@@ -16,11 +18,14 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="TelaLogIn"
+        //initialRouteName="TelaSupaTeste"
       >
         <Stack.Screen name="TelaInicial" component={TelaInicial} options={{title: 'Home', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaSignIn" component={TelaSignIn} options={{title: 'Sign-In', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaLogIn" component={TelaLogIn} options={{title: 'Log-In', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaPerfil" component={TelaPerfil} options={{title: 'Perfil', headerTitleAlign: 'center'}} />
+
+        <Stack.Screen name ="TelaSupaTeste" component={TelaSupaTeste} options={{title: 'supa', headerTitleAlign: 'center'}} />
 
       </Stack.Navigator>
     </NavigationContainer>
