@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import styles from '../styles';
 
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../firebaseconfig';
 
-export default function LogIn({navigation}) {
+export default function LogIn({ navigation }) {
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
 
   const handleLogin = async () => {
-    //const auth = getAuth(app);
-    //const db = getFirestore(app);
-
     try {
       const q = query(collection(db, 'usuarios'), where('cpf', '==', cpf));
       const querySnapshot = await getDocs(q);
@@ -29,7 +26,6 @@ export default function LogIn({navigation}) {
 
       await signInWithEmailAndPassword(auth, email, senha);
 
-      //Alert.alert('Bem-vindo!', `Olá, ${nome}! Você entrou com sucesso.`);
       navigation.navigate('TelaPerfil');
 
     } catch (error) {
@@ -40,6 +36,12 @@ export default function LogIn({navigation}) {
 
   return (
     <View style={styles.container}>
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Image
+          source={require('../assets/Logo_LS.png')}
+          style={{ width: 150, height: 150, resizeMode: 'contain' }}
+        />
+      </View>
 
       <View style={styles.formBox}>
 
