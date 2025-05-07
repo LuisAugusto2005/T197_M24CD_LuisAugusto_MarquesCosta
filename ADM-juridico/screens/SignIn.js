@@ -140,7 +140,7 @@
 
           <Text>Senha</Text>
           <TextInput
-            placeholder="Inserir Sedadnha"
+            placeholder="Inserir Senha"
             style={styles.input}
             secureTextEntry={!mostrarSenha}
             value={senha}
@@ -181,7 +181,7 @@
 
           <TouchableOpacity style={styles.button} 
            onPress={() => {
-            if (senha === senhaconf) {
+            if (senha===senhaconf) {
               handleRegister();
             } else {
               alert("As senhas não coincidem");

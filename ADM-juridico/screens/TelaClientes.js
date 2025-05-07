@@ -21,7 +21,6 @@ export default function TelaClientes({ navigation }) {
       />
       <View>
         <Text style={clienteStyles.nome}>{item.nome}</Text>
-        <Text style={clienteStyles.tempo}>{item.tempo}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -68,9 +67,5 @@ const clienteStyles = StyleSheet.create({
   nome: {
     fontSize: 16,
     fontWeight: '500',
-  },
-  tempo: {
-    color: 'gray',
-    fontSize: 12,
   },
 });

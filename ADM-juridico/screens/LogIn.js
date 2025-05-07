@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles';
 
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
@@ -9,6 +10,7 @@ import { auth, db } from '../firebaseconfig';
 export default function LogIn({ navigation }) {
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -57,10 +59,17 @@ export default function LogIn({ navigation }) {
         <TextInput
           placeholder="Inserir Senha"
           style={styles.input}
-          secureTextEntry
+          secureTextEntry={!mostrarSenha}
           value={senha}
           onChangeText={setSenha}
         />
+
+        <TouchableOpacity
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+            style={{ position: 'absolute', right: 33, top: 125}}
+          >
+          <MaterialCommunityIcons name={mostrarSenha ? "eye" : "eye-off"}  size={20}/>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>

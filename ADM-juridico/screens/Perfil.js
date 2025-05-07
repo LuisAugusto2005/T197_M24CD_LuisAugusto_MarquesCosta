@@ -41,7 +41,7 @@ export default function Perfil({ navigation }) {
         <Text style={styles.buttonText}>Abrir Processo</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={perfilStyles.iconButton}>
+      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaListaProcessos')}>
         <MaterialCommunityIcons name="magnify" size={20} color="#fff" style={perfilStyles.icon} />
         <Text style={styles.buttonText}>Lista de Processos</Text>
       </TouchableOpacity>

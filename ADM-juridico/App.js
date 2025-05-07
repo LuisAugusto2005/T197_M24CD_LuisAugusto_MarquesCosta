@@ -7,6 +7,7 @@ import TelaSignIn from './screens/SignIn';
 import TelaLogIn from './screens/LogIn';
 import TelaPerfil from './screens/Perfil';
 import TelaClientes from './screens/TelaClientes';
+import TelaListaProcessos from './screens/ListaProcessos';
 
 import TelaSupaTeste from './supabaseTESTE'
 
@@ -26,6 +27,7 @@ export default function App() {
         <Stack.Screen name ="TelaLogIn" component={TelaLogIn} options={{title: 'Log-In', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaPerfil" component={TelaPerfil} options={{title: 'Perfil', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaClientes" component={TelaClientes} options={{title: 'Lista de Clientes', headerTitleAlign: 'center'}} />
+        <Stack.Screen name ="TelaListaProcessos" component={TelaListaProcessos} options={{title: 'Lista dos Processos', headerTitleAlign: 'center'}} />
 
         <Stack.Screen name ="TelaSupaTeste" component={TelaSupaTeste} options={{title: 'supa', headerTitleAlign: 'center'}} />
 
