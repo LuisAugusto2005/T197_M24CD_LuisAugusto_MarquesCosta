@@ -1,6 +1,7 @@
   import React, { useState } from 'react';
   import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
   import { Buffer } from 'buffer';
+  import { MaterialCommunityIcons } from '@expo/vector-icons';
   import * as ImagePicker from 'expo-image-picker';
   import * as FileSystem from 'expo-file-system';
 
@@ -17,6 +18,9 @@
     const [email, setEmail] = useState('');
     const [cpf, setCpf] = useState('');
     const [senha, setSenha] = useState('');
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const [senhaconf, setSenhaconf] = useState('');
+    const [mostrarSenhaconf, setMostrarSenhaconf] = useState(false);
     const [image, setImage] = useState(null);
 
     const [imageUri, setImageUri] = useState(null);
@@ -136,12 +140,36 @@
 
           <Text>Senha</Text>
           <TextInput
-            placeholder="Inserir Senha"
+            placeholder="Inserir Sedadnha"
             style={styles.input}
-            secureTextEntry
+            secureTextEntry={!mostrarSenha}
             value={senha}
             onChangeText={setSenha}
           />
+
+            <TouchableOpacity
+              onPress={() => setMostrarSenha(!mostrarSenha)}
+              style={{ position: 'absolute', right: 33, top: 278}}
+            >
+            <MaterialCommunityIcons name={mostrarSenha ? "eye" : "eye-off"}  size={20}/>
+            </TouchableOpacity>
+
+          <Text>Confirmar Senha</Text>
+          <TextInput
+            placeholder="Confirme sua Senha"
+            style={styles.input}
+            secureTextEntry={!mostrarSenhaconf}
+            value={senhaconf}
+            onChangeText={setSenhaconf}
+          />
+          
+            <TouchableOpacity
+              onPress={() => setMostrarSenhaconf(!mostrarSenhaconf)}
+              style={{ position: 'absolute', right: 33, top: 354}}
+            >
+            <MaterialCommunityIcons name={mostrarSenhaconf ? "eye" : "eye-off"}  size={20}/>
+          </TouchableOpacity>
+
 
           {image && (
             <Image source={{ uri: image }} style={{ width: 100, height: 100, marginBottom: 10, borderRadius: 10 }} />
@@ -151,7 +179,15 @@
             <Text style={styles.buttonText}>Adicionar Foto</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <TouchableOpacity style={styles.button} 
+           onPress={() => {
+            if (senha === senhaconf) {
+              handleRegister();
+            } else {
+              alert("As senhas não coincidem");
+            }
+          }}
+        >
             <Text style={styles.buttonText}>Registrar</Text>
           </TouchableOpacity>
         </View>
