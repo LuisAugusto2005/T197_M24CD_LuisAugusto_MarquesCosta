@@ -3,13 +3,13 @@ import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react
 import styles from '../styles';
 
 const clientes = [
-  { id: '1', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '2', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '3', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '4', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '5', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '6', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
-  { id: '7', nome: 'Nome do cliente', tempo: '10d', imagem: require('../assets/icon.png') },
+  { id: '1', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '2', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '3', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '4', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '5', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '6', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
+  { id: '7', nome: 'Nome do cliente', imagem: require('../assets/icon.png') },
 ];
 
 export default function TelaClientes({ navigation }) {
