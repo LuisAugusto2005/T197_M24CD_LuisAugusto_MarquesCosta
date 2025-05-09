@@ -1,58 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import styles from '../styles';
 
 import { get, ref, child } from 'firebase/database';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, realtimeDB } from '../firebaseconfig';
+import { db } from '../firebaseconfig';
 
 export default function LogIn({ navigation }) {
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  // Verifica se o usuário já está logado
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       navigation.replace('TelaPerfil'); // já está logado
-  //     }
-  //   });
-
-  //   return unsubscribe;
-  // }, []);
-
   const handleLogin = async () => {
-    try {
-      const q = query(collection(db, 'usuarios'), where('cpf', '==', cpf));
-      const querySnapshot = await getDocs(q);
-  
-      if (querySnapshot.empty) {
-        Alert.alert('Erro', 'CPF não encontrado.');
-        return;
-      }
-  
-      const userData = querySnapshot.docs[0].data();
-      const email = userData.email;
-      const nome = userData.nome;
-  
-      // Verificar se o email e a senha estão sendo passados corretamente
-      console.log('Tentando fazer login com:', email, senha);
-  
-      // Tentando logar o usuário com o email e senha
-      const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-  
-      console.log('Login realizado com sucesso:', userCredential);
-  
-      // Se o login for bem-sucedido, redirecionar para a tela de perfil
-      navigation.navigate('TelaPerfil');
-    } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      Alert.alert('Erro ao entrar', 'Verifique CPF e senha.');
+  try {
+    const snapshot = await get(ref(db, 'usuarios'));
+
+    if (!snapshot.exists()) {
+      Alert.alert('Erro', 'Nenhum usuário cadastrado.');
+      return;
     }
-  };
-  
+
+    const users = snapshot.val();
+
+    // Procurar o usuário pelo CPF
+    let userFound = null;
+    Object.values(users).forEach((user) => {
+      if (user.cpf === cpf) {
+        userFound = user;
+      }
+    });
+
+    if (!userFound) {
+      Alert.alert('Erro', 'CPF não encontrado.');
+      return;
+    }
+
+    if (userFound.senha !== senha) {
+      Alert.alert('Erro', 'Senha incorreta.');
+      return;
+    }
+
+    console.log('Login realizado com sucesso:', userFound.email, userFound.nome);
+    navigation.navigate('TelaPerfil', {
+      email: userFound.email,
+      nome: userFound.nome
+    });
+
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    Alert.alert('Erro ao entrar', 'Ocorreu um problema ao tentar logar.');
+  }
+};
+
 
   return (
     <View style={styles.container}>

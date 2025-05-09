@@ -1,40 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { auth } from '../firebaseconfig';
 import styles from '../styles';
 
-export default function Perfil({ navigation }) {
-  const [userData, setUserData] = useState(null);
+export default function Perfil({ route, navigation }) {
+  const { nome, email } = route.params || {};
 
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      setUserData({
-        nome: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-      });
-    }
-  }, []);
-
-  if (!userData) {
-    return <Text style={{ marginTop: 40, textAlign: 'center' }}>Carregando perfil...</Text>;
+  if (!nome || !email) {
+    return <Text style={{ marginTop: 40, textAlign: 'center' }}>Dados do perfil não encontrados.</Text>;
   }
 
   return (
     <View style={styles.container}>
       <Image
-        source={
-          userData.photoURL
-            ? { uri: userData.photoURL }
-            : require('../assets/icon.png')
-        }
+        source={require('../assets/icon.png')}
         style={perfilStyles.avatar}
       />
-      <Text style={perfilStyles.nome}>{userData.nome}</Text>
-      <Text style={perfilStyles.email}>{userData.email}</Text>
+      <Text style={perfilStyles.nome}>{nome}</Text>
+      <Text style={perfilStyles.email}>{email}</Text>
 
       <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaClientes')}>
         <MaterialCommunityIcons name="pencil" size={20} color="#fff" style={perfilStyles.icon} />
