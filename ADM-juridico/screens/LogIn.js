@@ -40,10 +40,11 @@ export default function LogIn({ navigation }) {
       return;
     }
 
-    console.log('Login realizado com sucesso:', userFound.email, userFound.nome);
+    console.log('Login: ', userFound.email, userFound.nome);
     navigation.navigate('TelaPerfil', {
       email: userFound.email,
-      nome: userFound.nome
+      nome: userFound.nome,
+      photoURL: userFound.photoURL
     });
 
   } catch (error) {

@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import firebase from 'firebase/app';
 
 import styles from '../styles';
 
 export default function Perfil({ route, navigation }) {
-  const { nome, email } = route.params || {};
+  const { nome, email, photoURL } = route.params || {};
+  console.log(photoURL);
 
   if (!nome || !email) {
     return <Text style={{ marginTop: 40, textAlign: 'center' }}>Dados do perfil não encontrados.</Text>;
@@ -14,7 +16,7 @@ export default function Perfil({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/icon.png')}
+        source={photoURL ? { uri: photoURL } : require('../assets/icon.png')}
         style={perfilStyles.avatar}
       />
       <Text style={perfilStyles.nome}>{nome}</Text>

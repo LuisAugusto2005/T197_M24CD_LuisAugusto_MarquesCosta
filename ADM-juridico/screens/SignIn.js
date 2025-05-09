@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
 import { Buffer } from 'buffer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -91,7 +91,7 @@ export default function SignIn() {
         nome,
         email,
         cpf,
-        senha, // ⚠️ Armazenar senha diretamente não é recomendado
+        senha,
         photoURL: photoURL || null,
         criadoEm: new Date().toISOString(),
       });
@@ -114,83 +114,85 @@ export default function SignIn() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.formBox}>
-        <Text>Nome completo</Text>
-        <TextInput
-          placeholder="Inserir nome"
-          style={styles.input}
-          value={nome}
-          onChangeText={setNome}
-        />
+    <ScrollView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.formBox}>
+          <Text>Nome completo</Text>
+          <TextInput
+            placeholder="Inserir nome"
+            style={styles.input}
+            value={nome}
+            onChangeText={setNome}
+          />
 
-        <Text>Email</Text>
-        <TextInput
-          placeholder="Inserir Email"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
+          <Text>Email</Text>
+          <TextInput
+            placeholder="Inserir Email"
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+          />
 
-        <Text>CPF</Text>
-        <TextInput
-          placeholder="Inserir CPF"
-          style={styles.input}
-          value={cpf}
-          onChangeText={setCpf}
-        />
+          <Text>CPF</Text>
+          <TextInput
+            placeholder="Inserir CPF"
+            style={styles.input}
+            value={cpf}
+            onChangeText={setCpf}
+          />
 
-        <Text>Senha</Text>
-        <TextInput
-          placeholder="Inserir Senha"
-          style={styles.input}
-          secureTextEntry={!mostrarSenha}
-          value={senha}
-          onChangeText={setSenha}
-        />
-        <TouchableOpacity
-          onPress={() => setMostrarSenha(!mostrarSenha)}
-          style={{ position: 'absolute', right: 33, top: 278 }}
-        >
-          <MaterialCommunityIcons name={mostrarSenha ? "eye" : "eye-off"} size={20} />
-        </TouchableOpacity>
+          <Text>Senha</Text>
+          <TextInput
+            placeholder="Inserir Senha"
+            style={styles.input}
+            secureTextEntry={!mostrarSenha}
+            value={senha}
+            onChangeText={setSenha}
+          />
+          <TouchableOpacity
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+            style={{ position: 'absolute', right: 33, top: 278 }}
+          >
+            <MaterialCommunityIcons name={mostrarSenha ? "eye" : "eye-off"} size={20} />
+          </TouchableOpacity>
 
-        <Text>Confirmar Senha</Text>
-        <TextInput
-          placeholder="Confirme sua Senha"
-          style={styles.input}
-          secureTextEntry={!mostrarSenhaconf}
-          value={senhaconf}
-          onChangeText={setSenhaconf}
-        />
-        <TouchableOpacity
-          onPress={() => setMostrarSenhaconf(!mostrarSenhaconf)}
-          style={{ position: 'absolute', right: 33, top: 354 }}
-        >
-          <MaterialCommunityIcons name={mostrarSenhaconf ? "eye" : "eye-off"} size={20} />
-        </TouchableOpacity>
+          <Text>Confirmar Senha</Text>
+          <TextInput
+            placeholder="Confirme sua Senha"
+            style={styles.input}
+            secureTextEntry={!mostrarSenhaconf}
+            value={senhaconf}
+            onChangeText={setSenhaconf}
+          />
+          <TouchableOpacity
+            onPress={() => setMostrarSenhaconf(!mostrarSenhaconf)}
+            style={{ position: 'absolute', right: 33, top: 354 }}
+          >
+            <MaterialCommunityIcons name={mostrarSenhaconf ? "eye" : "eye-off"} size={20} />
+          </TouchableOpacity>
 
-        {image && (
-          <Image source={{ uri: image }} style={{ width: 100, height: 100, marginBottom: 10, borderRadius: 10 }} />
-        )}
+          {image && (
+            <Image source={{ uri: image }} style={{ width: 100, height: 100, marginBottom: 10, borderRadius: 10 }} />
+          )}
 
-        <TouchableOpacity style={styles.button} onPress={pickImage}>
-          <Text style={styles.buttonText}>Adicionar Foto</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Text style={styles.buttonText}>Adicionar Foto</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            if (senha === senhaconf) {
-              handleRegister();
-            } else {
-              Alert.alert("Erro", "As senhas não coincidem");
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>Registrar</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              if (senha === senhaconf) {
+                handleRegister();
+              } else {
+                Alert.alert("Erro", "As senhas não coincidem");
+              }
+            }}
+          >
+            <Text style={styles.buttonText}>Registrar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
