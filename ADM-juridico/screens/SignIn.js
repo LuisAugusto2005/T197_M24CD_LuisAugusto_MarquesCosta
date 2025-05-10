@@ -7,7 +7,6 @@ import * as FileSystem from 'expo-file-system';
 
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { ref, set } from 'firebase/database';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { supabase } from '../supabaseconfig';
 
 import styles from '../styles';
@@ -43,15 +42,14 @@ export default function SignIn() {
 
   const handleRegister = async () => {
     const auth = getAuth();
-    const firestore = getFirestore();
     let photoURL = null;
 
     try {
-      // 1. Cria usuário no Firebase Auth
+      // Cria usuário no Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
-      // 2. Envia imagem para Supabase, se existir
+      // Envia imagem para Supabase
       if (imageUri && imageType) {
         const fileName = `profile_${user.uid}_${Date.now()}.jpg`;
 
@@ -79,13 +77,13 @@ export default function SignIn() {
         }
       }
 
-      // 3. Atualiza perfil do usuário no Firebase Auth
+      // Atualiza perfil do usuário no Firebase Auth
       await updateProfile(user, {
         displayName: nome,
         photoURL: photoURL,
       });
 
-      // 4. Salva no Realtime Database
+      // Salva no Realtime Database
       const userId = uuid.v4();
       await set(ref(db, 'usuarios/' + userId), {
         nome,
@@ -93,16 +91,6 @@ export default function SignIn() {
         cpf,
         senha,
         photoURL: photoURL || null,
-        criadoEm: new Date().toISOString(),
-      });
-
-      // 5. Salva também no Firestore (opcional)
-      await addDoc(collection(firestore, 'usuarios'), {
-        uid: user.uid,
-        nome,
-        email,
-        cpf,
-        photoURL,
         criadoEm: new Date().toISOString(),
       });
 
