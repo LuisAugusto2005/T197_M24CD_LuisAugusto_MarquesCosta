@@ -13,10 +13,10 @@
   import { supabase } from '../supabaseconfig';
   import { MaterialCommunityIcons } from 'react-native-vector-icons';
 
-  export default function AbrirProcesso() {
+  export default function CadastrarProcesso() {
+    const [numero, setNumero] = useState('');
     const [nome, setNome] = useState('');
     const [cpf, setCpf] = useState('');
-    const [titulo, setTitulo] = useState('');
     const [descricao, setDescricao] = useState('');
     const [tipo, setTipo] = useState('');
     const [photo, setPhoto] = useState(null);
@@ -38,7 +38,7 @@
       if (!result.canceled && result.assets.length > 0) {
         setPhoto(result.assets[0].uri);
       }
-    };
+    }; 
 
     const adicionarArquivo = async () => {
       const result = await DocumentPicker.getDocumentAsync({
@@ -51,8 +51,8 @@
       }
     };
 
-    const concluirProcesso = async () => {
-  if (!nome || !cpf || !titulo || !descricao || !photo || arquivos.length === 0) {
+    const cadastrarProcesso = async () => {
+  if (!numero || !cpf || !nome || !descricao || arquivos.length === 0) {
     Alert.alert('Erro', 'Preencha todos os campos e adicione pelo menos um arquivo.');
     return;
   }
@@ -98,9 +98,9 @@ for (const file of arquivos) {
   try {
     // Salvar no Firebase Realtime Database
     const novoProcesso = {
+      numero,
       nomeCliente: nome,
       cpfCliente: cpf,
-      titulo,
       descricao,
       tipo,
       arquivos: arquivosEnviados,
@@ -118,9 +118,9 @@ for (const file of arquivos) {
 };
 
 const resetForm = () => {
+  setNumero('');
   setNome('');
   setCpf('');
-  setTitulo('');
   setDescricao('');
   setTipo('');
   setPhoto(null);
@@ -132,7 +132,7 @@ const resetForm = () => {
 
     return (
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>Abrir Processo</Text>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>Cadastrar Processo</Text>
 
         <TouchableOpacity onPress={pickImage} style={{ alignSelf: 'center', marginVertical: 20 }}>
           <Image
@@ -140,10 +140,10 @@ const resetForm = () => {
             style={{ width: 100, height: 100, borderRadius: 50 }}
           />
         </TouchableOpacity>
-
+        
+        <TextInput placeholder="Numero do processo" value={numero} onChangeText={setNumero} style={estilo.input} />
         <TextInput placeholder="Nome do cliente" value={nome} onChangeText={setNome} style={estilo.input} />
         <TextInput placeholder="CPF do cliente" value={cpf} onChangeText={setCpf} style={estilo.input} />
-        <TextInput placeholder="Inserir título do processo" value={titulo} onChangeText={setTitulo} style={estilo.input} />
         <TextInput
           placeholder="Inserir descrição do processo"
           value={descricao}
@@ -225,8 +225,8 @@ const resetForm = () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={concluirProcesso} style={estilo.botaoFinal}>
-          <Text style={{ color: 'white' }}>Concluir Processo</Text>
+        <TouchableOpacity onPress={cadastrarProcesso} style={estilo.botaoFinal}>
+          <Text style={{ color: 'white' }}>Cadastrar Processo</Text>
         </TouchableOpacity>
       </ScrollView>
     );

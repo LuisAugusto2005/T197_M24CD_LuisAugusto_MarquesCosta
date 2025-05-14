@@ -22,9 +22,9 @@ export default function Perfil({ route, navigation }) {
       <Text style={perfilStyles.nome}>{nome}</Text>
       <Text style={perfilStyles.email}>{email}</Text>
 
-      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaAbrirProcesso')}>
+      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaCadastrarProcesso')}>
         <MaterialCommunityIcons name="pencil" size={20} color="#fff" style={perfilStyles.icon} />
-        <Text style={styles.buttonText}>Abrir Processo</Text>
+        <Text style={styles.buttonText}>Cadastrar Processo</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaListaProcessos')}>
