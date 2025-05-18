@@ -12,7 +12,7 @@ export default function Perfil({ route, navigation }) {
   if (!nome || !email) {
     return <Text style={{ marginTop: 40, textAlign: 'center' }}>Dados do perfil não encontrados.</Text>;
   }
-
+  console.log(nome);
   return (
     <View style={styles.container}>
       <Image
@@ -22,7 +22,11 @@ export default function Perfil({ route, navigation }) {
       <Text style={perfilStyles.nome}>{nome}</Text>
       <Text style={perfilStyles.email}>{email}</Text>
 
-      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaCadastrarProcesso')}>
+      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaCadastrarProcesso', {
+        nome: nome,
+        photoURL: photoURL,
+      })}>
+        
         <MaterialCommunityIcons name="pencil" size={20} color="#fff" style={perfilStyles.icon} />
         <Text style={styles.buttonText}>Cadastrar Processo</Text>
       </TouchableOpacity>

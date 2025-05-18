@@ -7,7 +7,8 @@ import TelaSignIn from './screens/SignIn';
 import TelaLogIn from './screens/LogIn';
 import TelaPerfil from './screens/Perfil';
 import TelaClientes from './screens/TelaClientes';
-import TelaListaProcessos from './screens/ListaProcessos';
+// import TelaListaProcessos from './screens/ListaProcessos';
+import TelaListaProcessos from './screens/ListaProcessosFeitos';
 import TelaCadastrarProcesso from './screens/CadastrarProcesso'
 
 import TelaSupaTeste from './supabaseTESTE'

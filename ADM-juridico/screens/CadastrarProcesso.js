@@ -6,17 +6,20 @@
   import * as ImagePicker from 'expo-image-picker';
 
 
-  import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+  // import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
   import { getDatabase, ref, set } from 'firebase/database';
-  import { getFirestore, collection, addDoc } from 'firebase/firestore';
+  //import { getFirestore, collection, addDoc } from 'firebase/firestore';
   import { db } from '../firebaseconfig';
   import uuid from 'react-native-uuid';
   import { supabase } from '../supabaseconfig';
   import { MaterialCommunityIcons } from 'react-native-vector-icons';
 
-  export default function CadastrarProcesso() {
+  export default function CadastrarProcesso({route, navigation}) {
+    const {nome, photoURL} = route.params || {};
+    // console.log("NOME: ", nome)
+
     const [numero, setNumero] = useState('');
-    const [nome, setNome] = useState('');
+    const [nomeCliente, setNomeCliente] = useState('');
     const [cpf, setCpf] = useState('');
     const [descricao, setDescricao] = useState('');
     const [tipo, setTipo] = useState('');
@@ -53,7 +56,7 @@
     };
 
     const cadastrarProcesso = async () => {
-              if (!numero || !cpf || !nome || !descricao || arquivos.length === 0) {
+              if (!numero || !cpf || !nomeCliente || !descricao || arquivos.length === 0) {
                 Alert.alert('Erro', 'Preencha todos os campos e adicione pelo menos um arquivo.');
                 return;
               }
@@ -74,7 +77,7 @@
                   .from('documentos')
                   .upload(fileName, buffer, {
                     contentType: 'application/pdf',
-                    upsert: true, // opcional, mas evita erro se o nome já existir
+                    upsert: true, // opcional, mas evita erro se o nomeCliente já existir
                   });
 
                 if (uploadError) {
@@ -100,13 +103,15 @@
                 // Salvar no Firebase Realtime Database
                 const novoProcesso = {
                   numero,
-                  nomeCliente: nome,
+                  nomeCliente: nomeCliente,
                   cpfCliente: cpf,
                   descricao,
                   tipo,
                   arquivos: arquivosEnviados,
-                  photoUrl: photo,  // Adicionando a URL da foto
+                  photoCliente: photo,  // Adicionando a URL da foto
                   dataCriacao: new Date().toISOString(),
+                  advogado: nome,
+                  FotoDoAvogado: photoURL,
                 };
 
                 const userId = uuid.v4();
@@ -122,7 +127,7 @@
 
 const resetForm = () => {
   setNumero('');
-  setNome('');
+  setNomeCliente('');
   setCpf('');
   setDescricao('');
   setTipo('');
@@ -145,7 +150,7 @@ const resetForm = () => {
         </TouchableOpacity>
         
         <TextInput placeholder="Numero do processo" value={numero} onChangeText={setNumero} style={estilo.input} />
-        <TextInput placeholder="Nome do cliente" value={nome} onChangeText={setNome} style={estilo.input} />
+        <TextInput placeholder="Nome do cliente" value={nomeCliente} onChangeText={setNomeCliente} style={estilo.input} />
         <TextInput placeholder="CPF do cliente" value={cpf} onChangeText={setCpf} style={estilo.input} />
         <TextInput
           placeholder="Inserir descrição do processo"
