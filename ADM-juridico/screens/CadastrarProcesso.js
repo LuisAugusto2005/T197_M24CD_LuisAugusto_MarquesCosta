@@ -25,6 +25,7 @@
     const [tipo, setTipo] = useState('');
     const [photo, setPhoto] = useState(null);
     const [arquivos, setArquivos] = useState([]);
+    const [arquivosName, setArquivosName] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
 
     const tiposProcesso = [
@@ -56,7 +57,7 @@
     };
 
     const cadastrarProcesso = async () => {
-              if (!numero || !cpf || !nomeCliente || !descricao || arquivos.length === 0) {
+              if (!numero || !cpf || !nomeCliente || !descricao) {
                 Alert.alert('Erro', 'Preencha todos os campos e adicione pelo menos um arquivo.');
                 return;
               }
@@ -91,7 +92,10 @@
                   .getPublicUrl(fileName);
 
                 if (publicData?.publicUrl) {
-                  arquivosEnviados.push(publicData.publicUrl);
+                  arquivosEnviados.push({
+                  name: file.name,
+                  url: publicData.publicUrl
+                  });
                 }
               } catch (err) {
                 console.error('Erro ao processar arquivo:', err.message);

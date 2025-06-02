@@ -11,8 +11,9 @@ import {
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function ListaProcessos({}) {
+export default function ListaProcessos({navigation}) {
   const [processos, setProcessos] = useState([]);
+  const [processosID, setProcessosID] = useState([]);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -21,12 +22,13 @@ export default function ListaProcessos({}) {
       const data = snapshot.val() || {};
       // transforma objeto de objetos em array
       const lista = Object.entries(data).map(([id, item]) => ({
-        id, 
+        id,
         numero: item.numero,
         nomeCliente: item.nomeCliente,
         advogado: item.advogado || '—',
         FotoDoAvogado: item.FotoDoAvogado || null
       }));
+      setProcessosID(data);
       setProcessos(lista);
     });
     return () => unsubscribe();
@@ -35,14 +37,17 @@ export default function ListaProcessos({}) {
   // filtra por número do processo ou nome do advogado
   const filtrados = processos.filter(p =>
     p.numero.toLowerCase().includes(search.toLowerCase()) ||
-    p.advogado.toLowerCase().includes(search.toLowerCase())
+    p.advogado.toLowerCase().includes(search.toLowerCase()) ||
+    p.nomeCliente.toLowerCase().includes(search.toLowerCase())
   );
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      
-    >
+      onPress={() => navigation.navigate('TelaVisualizarProcesso', {
+        processoID: item.id,
+        advogado: item.advogado,
+        photo: item.FotoDoAvogado })}>
       <Image
         source={
           item.FotoDoAvogado
@@ -56,6 +61,7 @@ export default function ListaProcessos({}) {
         <Text style={styles.cliente}>{item.nomeCliente} (CLIENTE)</Text>
         <Text style={styles.advogado}>| {item.advogado} (ADVOGADO)</Text>
       </View>
+      
     </TouchableOpacity>
   );
 
@@ -92,8 +98,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 8
   },
   searchWrapper: {
     flexDirection: 'row',
