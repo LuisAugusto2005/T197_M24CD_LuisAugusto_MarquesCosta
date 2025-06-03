@@ -1,5 +1,5 @@
   import React, { useState } from 'react';
-  import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, FlatList, Modal, StyleSheet, Alert } from 'react-native';
+  import { View, Text, TextInput, TouchableOpacity, Image, Linking, ScrollView, FlatList, Modal, StyleSheet, Alert } from 'react-native';
   import { Buffer } from 'buffer';
   import * as DocumentPicker from 'expo-document-picker';
   import * as FileSystem from 'expo-file-system';
@@ -8,7 +8,7 @@
 
   // import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
   import { getDatabase, ref, set } from 'firebase/database';
-  //import { getFirestore, collection, addDoc } from 'firebase/firestore';
+  //import { getFirestore, collection, addDoc } from 'firebase/firestore';  
   import { db } from '../firebaseconfig';
   import uuid from 'react-native-uuid';
   import { supabase } from '../supabaseconfig';
@@ -52,56 +52,55 @@
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-        setArquivos((prev) => [...prev, file]); // Adiciona localmente
+        const fileComUrl = await url(file);
+        setArquivos((prev) => [...prev, fileComUrl]); // Adiciona localmente
       }
     };
+
+    const url = async (file) => {
+        if(file.url == null){
+          try {
+            const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
+              encoding: FileSystem.EncodingType.Base64,
+              });
+  
+            const fileName = `documento_${Date.now()}_${file.name}`;
+            const buffer = Buffer.from(fileBase64, 'base64');
+  
+            const { data: uploadData, error: uploadError } = await supabase
+              .storage
+              .from('documentos')
+              .upload(fileName, buffer, {
+                contentType: 'application/pdf',
+                upsert: true, // opcional, mas evita erro se o nomeCliente já existir
+            });
+  
+            if (uploadError) {
+              console.error('Erro ao enviar PDF:', uploadError.message);
+              return(file);
+            }
+  
+            const { data: publicData } = await supabase
+              .storage
+              .from('documentos')
+              .getPublicUrl(fileName);
+  
+            if (publicData?.publicUrl) {
+              file.url = publicData.publicUrl
+            }
+            console.log('Url Implementada no arquivo: ' + file.name)
+          } catch (err) {
+              console.error('Erro ao processar arquivo:', err.message);
+            }
+        }
+      return(file);
+    }
 
     const cadastrarProcesso = async () => {
               if (!numero || !cpf || !nomeCliente || !descricao) {
                 Alert.alert('Erro', 'Preencha todos os campos e adicione pelo menos um arquivo.');
                 return;
               }
-
-              const arquivosEnviados = [];
-
-            for (const file of arquivos) {
-              try {
-                const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
-                  encoding: FileSystem.EncodingType.Base64,
-                });
-
-                const fileName = `documento_${Date.now()}_${file.name}`;
-                const buffer = Buffer.from(fileBase64, 'base64');
-
-                const { data: uploadData, error: uploadError } = await supabase
-                  .storage
-                  .from('documentos')
-                  .upload(fileName, buffer, {
-                    contentType: 'application/pdf',
-                    upsert: true, // opcional, mas evita erro se o nomeCliente já existir
-                  });
-
-                if (uploadError) {
-                  console.error('Erro ao enviar PDF:', uploadError.message);
-                  continue;
-                }
-
-                const { data: publicData } = await supabase
-                  .storage
-                  .from('documentos')
-                  .getPublicUrl(fileName);
-
-                if (publicData?.publicUrl) {
-                  arquivosEnviados.push({
-                  name: file.name,
-                  url: publicData.publicUrl
-                  });
-                }
-              } catch (err) {
-                console.error('Erro ao processar arquivo:', err.message);
-              }
-            }
-
 
               try {
                 // Salvar no Firebase Realtime Database
@@ -111,7 +110,7 @@
                   cpfCliente: cpf,
                   descricao,
                   tipo,
-                  arquivos: arquivosEnviados,
+                  arquivos: arquivos,
                   photoCliente: photo,  // Adicionando a URL da foto
                   dataCriacao: new Date().toISOString(),
                   advogado: nome,
@@ -216,13 +215,13 @@ const resetForm = () => {
               keyExtractor={(item, index) => `${item.name}_${index}`}
               renderItem={({ item, index }) => (
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <Text style={{ flex: 1 }}>
+                  <Text style={{ flex: 1 }} onPress={() =>Linking.openURL(item.url)}>
                     <MaterialCommunityIcons name="folder" size={20} /> {item.name}
                   </Text>
                   <TouchableOpacity onPress={() => {
                     setArquivos(prev => prev.filter((_, i) => i !== index));
                   }}>
-                    <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                    <Text style={{fontWeight: 'bold' }}>
                       <MaterialCommunityIcons name="close-circle" size={20} />
                     </Text>
                   </TouchableOpacity>

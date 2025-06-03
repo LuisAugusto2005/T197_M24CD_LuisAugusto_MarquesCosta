@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, TextInput, Image, FlatList, Modal, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Text, TextInput, Image, FlatList, Linking, Modal, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getDatabase, ref, get, child } from 'firebase/database';
+import { getDatabase, ref, get, set, child, push, update } from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../supabaseconfig';
+import { Buffer } from 'buffer';
 
 export default function VisualizarProcesso({ route, navigation }) {
   const { processoID, advogado, photo } = route.params || {};
@@ -14,8 +16,8 @@ export default function VisualizarProcesso({ route, navigation }) {
   const [cpf, setCpf] = useState('');
   const [descricao, setDescricao] = useState('');
   const [tipo, setTipo] = useState('');
+  const [oldArquivos, oldSetArquivos] = useState([]);
   const [arquivos, setArquivos] = useState([]);
-
   const [modalVisible, setModalVisible] = useState(false);
   const tiposProcesso = [
     'Processo de conhecimento',
@@ -46,6 +48,7 @@ export default function VisualizarProcesso({ route, navigation }) {
       setTipo(snapshot.val() || '');
     });
     get(child(dbRef, `processos/${processoID}/arquivos`)).then(snapshot => {
+      oldSetArquivos(snapshot.val() || []);
       setArquivos(snapshot.val() || []);
     });
   }, [processoID]);
@@ -57,9 +60,74 @@ export default function VisualizarProcesso({ route, navigation }) {
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-        setArquivos((prev) => [...prev, file]); // Adiciona localmente
+        const fileComUrl = await url(file);
+        setArquivos((prev) => [...prev, fileComUrl]); // Adiciona localmente
       }
     };
+
+  const url = async (file) => {
+      if(file.url == null){
+        try {
+          const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+            });
+
+          const fileName = `documento_${Date.now()}_${file.name}`;
+          const buffer = Buffer.from(fileBase64, 'base64');
+
+          const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('documentos')
+            .upload(fileName, buffer, {
+              contentType: 'application/pdf',
+              upsert: true, // opcional, mas evita erro se o nomeCliente já existir
+          });
+
+          if (uploadError) {
+            console.error('Erro ao enviar PDF:', uploadError.message);
+            return(file);
+          }
+
+          const { data: publicData } = await supabase
+            .storage
+            .from('documentos')
+            .getPublicUrl(fileName);
+
+          if (publicData?.publicUrl) {
+            file.url = publicData.publicUrl
+          }
+          console.log('Url Implementada no arquivo: ' + file.name)
+        } catch (err) {
+            console.error('Erro ao processar arquivo:', err.message);
+          }
+      }
+    return(file);
+  }
+
+
+  const atualizarProcesso = async (processoID) => {
+    try {
+      const db = getDatabase();
+      const processoRef = ref(db, `processos/${processoID}`);
+
+      const atualizacaoData = {
+                numero: numero,
+                nomeCliente: nomeCliente,
+                cpfCliente: cpf,
+                descricao: descricao,
+                tipo: tipo,
+                arquivos: arquivos,
+                advogado: advogado
+              }
+
+      await set(processoRef, atualizacaoData);
+
+      console.log('Processo atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar processo:', error);
+    }
+};
+
 
   return (
     <ScrollView style={estilo.container_principal}>
@@ -160,17 +228,18 @@ export default function VisualizarProcesso({ route, navigation }) {
             <Text style={{ fontStyle: 'italic', color: '#555' }}>Nenhum arquivo adicionado</Text>
           ) : (
             <FlatList
+            
               data={arquivos}
               keyExtractor={(item, index) => `${item.name}_${index}`}
               renderItem={({ item, index }) => (
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <Text style={{ flex: 1 }}>
+                  <Text style={{ flex: 1 }} onPress={() =>Linking.openURL(item.url)}>
                     <MaterialCommunityIcons name="folder" size={20} /> {item.name}
                   </Text>
                   <TouchableOpacity onPress={() => {
                     setArquivos(prev => prev.filter((_, i) => i !== index));
                   }}>
-                    <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                    <Text style={{fontWeight: 'bold' }}>
                       <MaterialCommunityIcons name="close-circle" size={20} />
                     </Text>
                   </TouchableOpacity>
@@ -186,7 +255,17 @@ export default function VisualizarProcesso({ route, navigation }) {
         </View>
 
       </View>
+      <View style={estilo.viewbotoes}>
+          {/* EXCLUIR */}
+          <TouchableOpacity style={estilo.botao}>
+            <Text style={{color: 'white'}}>Excluir</Text>
+          </TouchableOpacity>
 
+          {/* SALVAR */}
+          <TouchableOpacity style={estilo.botao} onPress={() => atualizarProcesso(processoID)}>
+            <Text style={{color: 'white'}}>Salvar</Text>
+          </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -200,7 +279,7 @@ const estilo = StyleSheet.create({
     height: 30,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#4caf50',
+    backgroundColor: '#28a745',
     borderRadius: 8,
     elevation: 3,
     shadowColor: '#000',
@@ -234,7 +313,8 @@ const estilo = StyleSheet.create({
     fontSize: 14
   },
   container_imput: {
-    margin: 20,
+    marginTop: 10,
+    marginHorizontal: 20,
     alignItems: 'center',
   },
   imput: {
@@ -247,58 +327,70 @@ const estilo = StyleSheet.create({
     marginBottom: 10,
   },
 
-  
 
-    // Styles Selecionar Tipo de processo
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-      width: 300,
-      padding: 20,
-      backgroundColor: 'white',
-      borderRadius: 10,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 15,
-      textAlign: 'center',
-    },
-    modalItem: {
-      padding: 10,
-      borderBottomWidth: 1,
-      borderColor: '#ccc',
-    },
-    closeButton: {
-      marginTop: 15,
-      backgroundColor: '#000',
-      padding: 10,
-      borderRadius: 5,
-      alignItems: 'center',
-    },
-  
-    botaoArquivo: {
-      marginTop: 10,
-      backgroundColor: '#bbb',
-      padding: 10,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-  iconButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#333',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    alignSelf: 'center',
-    marginVertical: 10,
-  },
-  icon: {
+
+// Styles Selecionar Tipo de processo
+modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+},
+modalContent: {
+  width: 300,
+  padding: 20,
+  backgroundColor: 'white',
+  borderRadius: 10,
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  textAlign: 'center',
+},
+modalItem: {
+  padding: 10,
+  borderBottomWidth: 1,
+  borderColor: '#ccc',
+},
+closeButton: {
+  backgroundColor: '#000',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+},
+
+botaoArquivo: {
+  backgroundColor: '#bbb',
+  padding: 10,
+  borderRadius: 10,
+  alignItems: 'center',
+},
+iconButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#333',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 20,
+  alignSelf: 'center',
+},
+icon: {
     marginRight: 10,
+  },
+
+  // Styles botoes finais
+  viewbotoes: {
+    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-around'
+  },
+  botao: {
+    marginTop: 5,
+    height: 40,
+    width: 100,
+    backgroundColor: 'black',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
   },
 });

@@ -23,8 +23,8 @@ export default function ListaProcessos({navigation}) {
       // transforma objeto de objetos em array
       const lista = Object.entries(data).map(([id, item]) => ({
         id,
-        numero: item.numero,
-        nomeCliente: item.nomeCliente,
+        numero: item.numero || '',
+        nomeCliente: item.nomeCliente || '', 
         advogado: item.advogado || '—',
         FotoDoAvogado: item.FotoDoAvogado || null
       }));
