@@ -47,7 +47,7 @@ export default function ListaProcessos({navigation}) {
       onPress={() => navigation.navigate('TelaVisualizarProcesso', {
         processoID: item.id,
         advogado: item.advogado,
-        photo: item.FotoDoAvogado })}>
+        photoAdvogado: item.FotoDoAvogado })}>
       <Image
         source={
           item.FotoDoAvogado

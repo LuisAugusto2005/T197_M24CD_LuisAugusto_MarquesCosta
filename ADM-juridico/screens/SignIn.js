@@ -13,7 +13,7 @@ import styles from '../styles';
 import { db } from '../firebaseconfig';
 import uuid from 'react-native-uuid';
 
-export default function SignIn() {
+export default function SignIn({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
@@ -95,6 +95,7 @@ export default function SignIn() {
       });
 
       Alert.alert('Sucesso', 'Usuário registrado com sucesso!');
+      navigation.goBack();
     } catch (error) {
       console.error('Erro ao registrar:', error.message);
       Alert.alert('Erro', error.message);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Text, TextInput, Image, FlatList, Linking, Modal, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getDatabase, ref, get, set, child, push, update } from 'firebase/database';
+import { getDatabase, ref, get, set, child, remove, push, update } from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,7 +9,7 @@ import { supabase } from '../supabaseconfig';
 import { Buffer } from 'buffer';
 
 export default function VisualizarProcesso({ route, navigation }) {
-  const { processoID, advogado, photo } = route.params || {};
+  const { processoID, advogado, photoAdvogado } = route.params || {};
 
   const [numero, setNumero] = useState('');
   const [nomeCliente, setNomeCliente] = useState('');
@@ -104,6 +104,31 @@ export default function VisualizarProcesso({ route, navigation }) {
     return(file);
   }
 
+  const excluirProcesso = async (processoID) => {
+    Alert.alert(
+    'Confirmar exclusão',
+    'Tem certeza que deseja excluir este processo?',
+      [
+        { text: 'Cancelar', },
+        { 
+          text: 'Excluir',
+          onPress: async () => {
+            try {
+              const db = getDatabase();
+              const processoRef = ref(db, `processos/${processoID}`);
+
+              await remove(processoRef);
+
+              console.log('Processo removido com sucesso!');
+              navigation.goBack();
+            } catch (error) {
+              console.error('Erro ao remover processo:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const atualizarProcesso = async (processoID) => {
     try {
@@ -117,7 +142,8 @@ export default function VisualizarProcesso({ route, navigation }) {
                 descricao: descricao,
                 tipo: tipo,
                 arquivos: arquivos,
-                advogado: advogado
+                advogado: advogado,
+                FotoDoAvogado: photoAdvogado,
               }
 
       await set(processoRef, atualizacaoData);
@@ -147,7 +173,7 @@ export default function VisualizarProcesso({ route, navigation }) {
         {/* CLIENTE */}
         <View style={estilo.container_pessoas}>
           <Image
-            source={photo ? { } : require('../assets/icon.png')}
+            source={photoAdvogado ? { } : require('../assets/icon.png')}
             style={estilo.avatar}
           />
           <Text style={estilo.nome}>{nomeCliente}</Text>
@@ -157,7 +183,7 @@ export default function VisualizarProcesso({ route, navigation }) {
         {/* ADVOGADO */}
         <View style={estilo.container_pessoas}>
           <Image
-            source={photo ? { uri: photo } : require('../assets/icon.png')}
+            source={photoAdvogado ? { uri: photoAdvogado } : require('../assets/icon.png')}
             style={estilo.avatar}
           />
           <Text style={estilo.nome}>{advogado}</Text>
@@ -257,7 +283,7 @@ export default function VisualizarProcesso({ route, navigation }) {
       </View>
       <View style={estilo.viewbotoes}>
           {/* EXCLUIR */}
-          <TouchableOpacity style={estilo.botao}>
+          <TouchableOpacity style={estilo.botao} onPress={() => excluirProcesso(processoID)}>
             <Text style={{color: 'white'}}>Excluir</Text>
           </TouchableOpacity>
 

@@ -23,7 +23,7 @@
     const [cpf, setCpf] = useState('');
     const [descricao, setDescricao] = useState('');
     const [tipo, setTipo] = useState('');
-    const [photo, setPhoto] = useState(null);
+    const [photoCliente, setPhotoCliente] = useState(null);
     const [arquivos, setArquivos] = useState([]);
     const [arquivosName, setArquivosName] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
@@ -41,7 +41,7 @@
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
+        setPhotoCliente(result.assets[0].uri);
       }
     }; 
 
@@ -111,43 +111,29 @@
                   descricao,
                   tipo,
                   arquivos: arquivos,
-                  photoCliente: photo,  // Adicionando a URL da foto
                   dataCriacao: new Date().toISOString(),
                   advogado: nome,
                   FotoDoAvogado: photoURL,
+                  FotoCliente: photoCliente
                 };
 
                 const userId = uuid.v4();
                 await set(ref(db, 'processos/' + userId), novoProcesso);
                 Alert.alert('Sucesso', 'Processo aberto com sucesso');
-                resetForm();
+                navigation.goBack();
                 
               } catch (err) {
                 console.error('Erro ao salvar processo:', err);
                 Alert.alert('Erro', 'Ocorreu um erro ao salvar o processo.');
               }
 };
-
-const resetForm = () => {
-  setNumero('');
-  setNomeCliente('');
-  setCpf('');
-  setDescricao('');
-  setTipo('');
-  setPhoto(null);
-  setArquivos([]);
-};
-
-
-
-
     return (
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>Cadastrar Processo</Text>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>Adicionar foto do cliente</Text>
 
         <TouchableOpacity onPress={pickImage} style={{ alignSelf: 'center', marginVertical: 20 }}>
           <Image
-            source={photo ? { uri: photo } : require('../assets/icon.png')}
+            source={photoCliente ? { uri: photoCliente } : require('../assets/icon.png')}
             style={{ width: 100, height: 100, borderRadius: 50 }}
           />
         </TouchableOpacity>
