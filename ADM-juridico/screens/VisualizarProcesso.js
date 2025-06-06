@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, TextInput, Image, FlatList, Linking, Modal, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  Image,
+  FlatList,
+  Linking,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getDatabase, ref, get, set, child, remove, push, update } from 'firebase/database';
+import {
+  getDatabase,
+  ref,
+  get,
+  set,
+  child,
+  remove,
+  push,
+  update,
+} from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import uuid from 'react-native-uuid';
@@ -19,6 +41,8 @@ export default function VisualizarProcesso({ route, navigation }) {
   const [tipo, setTipo] = useState('');
   const [arquivos, setArquivos] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [photoCliente, setPhotoCliente] = useState('');
+
   const tiposProcesso = [
     'Processo de conhecimento',
     'Processo cautelar',
@@ -32,91 +56,97 @@ export default function VisualizarProcesso({ route, navigation }) {
     const db = getDatabase();
     const dbRef = ref(db);
 
-    get(child(dbRef, `processos/${processoID}/numero`)).then(snapshot => {
+    get(child(dbRef, `processos/${processoID}/numero`)).then((snapshot) => {
       setNumero(snapshot.val() || '');
     });
-    get(child(dbRef, `processos/${processoID}/nomeCliente`)).then(snapshot => {
-      setNomeCliente(snapshot.val() || '');
-    });
-    get(child(dbRef, `processos/${processoID}/cpfCliente`)).then(snapshot => {
+    get(child(dbRef, `processos/${processoID}/nomeCliente`)).then(
+      (snapshot) => {
+        setNomeCliente(snapshot.val() || '');
+      }
+    );
+    get(child(dbRef, `processos/${processoID}/cpfCliente`)).then((snapshot) => {
       setCpf(snapshot.val() || '');
     });
-    get(child(dbRef, `processos/${processoID}/descricao`)).then(snapshot => {
+    get(child(dbRef, `processos/${processoID}/descricao`)).then((snapshot) => {
       setDescricao(snapshot.val() || '');
     });
-    get(child(dbRef, `processos/${processoID}/tipo`)).then(snapshot => {
+    get(child(dbRef, `processos/${processoID}/tipo`)).then((snapshot) => {
       setTipo(snapshot.val() || '');
     });
-    get(child(dbRef, `processos/${processoID}/arquivos`)).then(snapshot => {
+    get(child(dbRef, `processos/${processoID}/arquivos`)).then((snapshot) => {
       setArquivos(snapshot.val() || []);
     });
+    get(child(dbRef, `processos/${processoID}/FotoCliente`)).then(
+      (snapshot) => {
+        setPhotoCliente(snapshot.val() || '');
+      }
+    );
   }, [processoID]);
 
+  console.log(photoCliente);
+
   const adicionarArquivo = async () => {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: 'application/pdf',
-  });
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+    });
 
-  if (!result.canceled && result.assets && result.assets.length > 0) {
-    const file = result.assets[0];
-    setArquivos((prev) => [...prev, file]); // Adiciona localmente
-    await url(file);  // Passa o arquivo direto
-  }
-};
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const file = result.assets[0];
+      setArquivos((prev) => [...prev, file]); // Adiciona localmente
+      await url(file); // Passa o arquivo direto
+    }
+  };
 
-const url = async (file) => {
-  if (!file.url) {
-    try {
-      const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      const fileName = `documento_${Date.now()}_${file.name}`;
-      const buffer = Buffer.from(fileBase64, 'base64');
-
-      const { error: uploadError } = await supabase
-        .storage
-        .from('documentos')
-        .upload(fileName, buffer, {
-          contentType: 'application/pdf',
-          upsert: true,
+  const url = async (file) => {
+    if (!file.url) {
+      try {
+        const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
+          encoding: FileSystem.EncodingType.Base64,
         });
 
-      if (uploadError) {
-        console.error('Erro ao enviar PDF:', uploadError.message);
-        return;
+        const fileName = `documento_${Date.now()}_${file.name}`;
+        const buffer = Buffer.from(fileBase64, 'base64');
+
+        const { error: uploadError } = await supabase.storage
+          .from('documentos')
+          .upload(fileName, buffer, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Erro ao enviar PDF:', uploadError.message);
+          return;
+        }
+
+        const { data: publicData } = await supabase.storage
+          .from('documentos')
+          .getPublicUrl(fileName);
+
+        if (publicData?.publicUrl) {
+          file.url = publicData.publicUrl;
+
+          // Atualiza o estado com a nova URL
+          setArquivos((prev) =>
+            prev.map((f) =>
+              f.uri === file.uri ? { ...f, url: publicData.publicUrl } : f
+            )
+          );
+          console.log('Url implementada no arquivo:', file.name);
+        }
+      } catch (err) {
+        console.error('Erro ao processar arquivo:', err.message);
       }
-
-      const { data: publicData } = await supabase
-        .storage
-        .from('documentos')
-        .getPublicUrl(fileName);
-
-      if (publicData?.publicUrl) {
-        file.url = publicData.publicUrl;
-
-        // Atualiza o estado com a nova URL
-        setArquivos((prev) => 
-          prev.map((f) => 
-            f.uri === file.uri ? { ...f, url: publicData.publicUrl } : f
-          )
-        );
-        console.log('Url implementada no arquivo:', file.name);
-      }
-    } catch (err) {
-      console.error('Erro ao processar arquivo:', err.message);
     }
-  }
-};
-
+  };
 
   const excluirProcesso = async (processoID) => {
     Alert.alert(
-    'Confirmar exclusão',
-    'Tem certeza que deseja excluir este processo?',
+      'Confirmar exclusão',
+      'Tem certeza que deseja excluir este processo?',
       [
-        { text: 'Cancelar', },
-        { 
+        { text: 'Cancelar' },
+        {
           text: 'Excluir',
           onPress: async () => {
             try {
@@ -130,8 +160,8 @@ const url = async (file) => {
             } catch (error) {
               console.error('Erro ao remover processo:', error);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -142,15 +172,16 @@ const url = async (file) => {
       const processoRef = ref(db, `processos/${processoID}`);
 
       const atualizacaoData = {
-                numero: numero,
-                nomeCliente: nomeCliente,
-                cpfCliente: cpf,
-                descricao: descricao,
-                tipo: tipo,
-                arquivos: arquivos,
-                advogado: advogado,
-                FotoDoAvogado: photoAdvogado,
-              }
+        numero: numero,
+        nomeCliente: nomeCliente,
+        cpfCliente: cpf,
+        descricao: descricao,
+        tipo: tipo,
+        arquivos: arquivos,
+        advogado: advogado,
+        FotoDoAvogado: photoAdvogado,
+        FotoCliente: photoCliente,
+      };
 
       await set(processoRef, atualizacaoData);
 
@@ -158,15 +189,15 @@ const url = async (file) => {
     } catch (error) {
       console.error('Erro ao atualizar processo:', error);
     }
-};
+  };
 
-const concluirProcesso = async (processoID) => {
+  const concluirProcesso = async (processoID) => {
     Alert.alert(
-    'Confirmar conclusão do processo',
-    'Este processo sera rotulado como finalizado (Nenhuma alteração sera aceita)',
+      'Confirmar conclusão do processo',
+      'Este processo sera rotulado como finalizado (Nenhuma alteração sera aceita)',
       [
-        { text: 'Cancelar', },
-        { 
+        { text: 'Cancelar' },
+        {
           text: 'Concluir',
           onPress: async () => {
             try {
@@ -181,6 +212,7 @@ const concluirProcesso = async (processoID) => {
                 arquivos: arquivos,
                 advogado: advogado,
                 FotoDoAvogado: photoAdvogado,
+                FotoCliente: photoCliente,
               };
 
               const userId = uuid.v4();
@@ -192,127 +224,176 @@ const concluirProcesso = async (processoID) => {
             } catch (error) {
               console.error('Erro ao concluir processo:', error);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
-
   return (
     <ScrollView style={estilo.container_principal}>
+      {/* NUMERO */}
+      <Text style={estilo.numero}>{'[ ' + numero + ' ]'}</Text>
 
-          {/* NUMERO */}
-        <Text style={estilo.numero}>{'[ ' + numero + ' ]'}</Text>
+      {/* STATUS BAR */}
+      <TouchableOpacity
+        style={estilo.Status}
+        onPress={() => navigation.navigate('TelaStatus')}>
+        <Text style={{ marginTop: 5, marginLeft: 20 }}>Status:</Text>
+        <Text style={{ marginTop: 5, marginRight: 20, marginLeft: 5 }}>
+          Em Andamento
+        </Text>
+      </TouchableOpacity>
 
-          {/* STATUS BAR */}
-          <TouchableOpacity style={estilo.Status} onPress={() => navigation.navigate('TelaStatus')}> 
-           <Text style={{marginTop: 5, marginLeft: 20, }}>
-              Status: 
-           </Text>
-           <Text style={{marginTop: 5, marginRight: 20, marginLeft: 5, }}>
-              Em Andamento
-           </Text>
-          </TouchableOpacity>
+      {/* CLIENTE */}
+      <View style={estilo.container_pessoas}>
+        <Image
+          source={
+            photoCliente ? { uri: photoCliente } : require('../assets/icon.png')
+          }
+          style={estilo.avatar}
+        />
+        <Text style={estilo.nome}>{nomeCliente}</Text>
+        <Text style={{ color: 'gray', fontSize: 12 }}>{' (CLIENTE)'}</Text>
+      </View>
 
+      {/* ADVOGADO */}
+      <View style={estilo.container_pessoas}>
+        <Image
+          source={
+            photoAdvogado
+              ? { uri: photoAdvogado }
+              : require('../assets/icon.png')
+          }
+          style={estilo.avatar}
+        />
+        <Text style={estilo.nome}>{advogado}</Text>
+        <Text style={{ color: 'gray', fontSize: 12 }}>{' (ADVOGADO)'}</Text>
+      </View>
 
-        {/* CLIENTE */}
-        <View style={estilo.container_pessoas}>
-          <Image
-            source={photoAdvogado ? { } : require('../assets/icon.png')}
-            style={estilo.avatar}
-          />
-          <Text style={estilo.nome}>{nomeCliente}</Text>
-          <Text style={{color: 'gray', fontSize: 12}}>{ ' (CLIENTE)'}</Text>
-        </View>
+      {/* IMPUTS */}
+      <View style={estilo.container_imput}>
+        <TextInput
+          placeholder={'Numero do processo'}
+          value={numero}
+          onChangeText={setNumero}
+          style={estilo.imput}
+        />
+        <TextInput
+          placeholder={'Nome do cliente'}
+          value={nomeCliente}
+          onChangeText={setNomeCliente}
+          style={estilo.imput}
+        />
+        <TextInput
+          placeholder={'CPF do cliente'}
+          value={cpf}
+          onChangeText={setCpf}
+          style={estilo.imput}
+        />
+        {/* DESCRIÇÃO */}
+        <TextInput
+          placeholder={'Inserir descrição do processo'}
+          value={descricao}
+          onChangeText={setDescricao}
+          style={[estilo.imput, { height: 100 }]}
+          multiline
+        />
 
-        {/* ADVOGADO */}
-        <View style={estilo.container_pessoas}>
-          <Image
-            source={photoAdvogado ? { uri: photoAdvogado } : require('../assets/icon.png')}
-            style={estilo.avatar}
-          />
-          <Text style={estilo.nome}>{advogado}</Text>
-          <Text style={{color: 'gray', fontSize: 12}}>{ ' (ADVOGADO)'}</Text>
-        </View>
+        {/* SELECIONAR TIPO DE PROCESSO */}
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={estilo.imput}>
+          <Text>{tipo || 'Selecionar tipo do processo'}</Text>
+        </TouchableOpacity>
 
-        {/* IMPUTS */}
-        <View style={estilo.container_imput}> 
-          <TextInput placeholder={'Numero do processo'} value={numero} onChangeText={setNumero} style={estilo.imput} />
-          <TextInput placeholder={'Nome do cliente'} value={nomeCliente} onChangeText={setNomeCliente} style={estilo.imput} />
-          <TextInput placeholder={'CPF do cliente'} value={cpf} onChangeText={setCpf} style={estilo.imput} />
-          {/* DESCRIÇÃO */}
-          <TextInput
-                    placeholder={'Inserir descrição do processo'}
-                    value={descricao}
-                    onChangeText={setDescricao}
-                    style={[estilo.imput, { height: 100}]}
-                    multiline
-                    />
-
-              {/* SELECIONAR TIPO DE PROCESSO */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}>
+          <View style={estilo.modalContainer}>
+            <View style={estilo.modalContent}>
+              <Text style={estilo.modalTitle}>Selecionar Tipo de Processo</Text>
+              <FlatList
+                data={tiposProcesso}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={estilo.modalItem}
+                    onPress={() => {
+                      setTipo(item);
+                      setModalVisible(false);
+                    }}>
+                    <Text>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
               <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                style={estilo.imput}
-                >
-                <Text>{tipo || 'Selecionar tipo do processo'}</Text>
+                style={estilo.closeButton}
+                onPress={() => setModalVisible(false)}>
+                <Text style={{ color: 'white' }}>Fechar</Text>
               </TouchableOpacity>
-              
-              <Modal
-                visible={modalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setModalVisible(false)}
-                >
-                <View style={estilo.modalContainer}>
-                  <View style={estilo.modalContent}>
-                    <Text style={estilo.modalTitle}>Selecionar Tipo de Processo</Text>
-                    <FlatList
-                      data={tiposProcesso}
-                      keyExtractor={(item, index) => index.toString()}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                        style={estilo.modalItem}
-                        onPress={() => {
-                          setTipo(item);
-                          setModalVisible(false);
-                        }}
-                        >
-                          <Text>{item}</Text>
-                        </TouchableOpacity>
-                      )}
-                      />
-                    <TouchableOpacity
-                      style={estilo.closeButton}
-                      onPress={() => setModalVisible(false)}
-                      >
-                      <Text style={{ color: 'white' }}>Fechar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-
+            </View>
+          </View>
+        </Modal>
 
         {/* DOCUMENTOS */}
-        <Text style={{ marginTop: 20, alignSelf: 'flex-start', marginBottom: 5 }}>Documentos do cliente:</Text>
-        <View style={{ minHeight: 100, width: 375, backgroundColor: '#ddd', padding: 10, borderRadius: 10, marginBottom: 10 }}>
+        <Text
+          style={{ marginTop: 20, alignSelf: 'flex-start', marginBottom: 5 }}>
+          Documentos do cliente:
+        </Text>
+        <View
+          style={{
+            minHeight: 100,
+            width: 375,
+            backgroundColor: '#ddd',
+            padding: 10,
+            borderRadius: 10,
+            marginBottom: 10,
+          }}>
           {arquivos.length === 0 ? (
-            <Text style={{ fontStyle: 'italic', color: '#555' }}>Nenhum arquivo adicionado</Text>
+            <Text style={{ fontStyle: 'italic', color: '#555' }}>
+              Nenhum arquivo adicionado
+            </Text>
           ) : (
             <FlatList
-            
               data={arquivos}
               keyExtractor={(item, index) => `${item.name}_${index}`}
               renderItem={({ item, index }) => (
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <Text style={{ flex: 1 }} onPress={() => { item.url ? Linking.openURL(item.url) : Alert.alert('Atenção', 'O arquivo ainda está sendo enviado.');}}>
-                    <MaterialCommunityIcons name="folder" size={20} /> {item.url ? item.name : <ActivityIndicator size={15} color="black" paddingHorizontal={10} />}
-
-                  </Text>
-                  <TouchableOpacity onPress={() => {
-                    setArquivos(prev => prev.filter((_, i) => i !== index));
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 5,
                   }}>
-                    <Text style={{fontWeight: 'bold' }}>
+                  <Text
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      item.url
+                        ? Linking.openURL(item.url)
+                        : Alert.alert(
+                            'Atenção',
+                            'O arquivo ainda está sendo enviado.'
+                          );
+                    }}>
+                    <MaterialCommunityIcons name="folder" size={20} />{' '}
+                    {item.url ? (
+                      item.name
+                    ) : (
+                      <ActivityIndicator
+                        size={15}
+                        color="black"
+                        paddingHorizontal={10}
+                      />
+                    )}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setArquivos((prev) => prev.filter((_, i) => i !== index));
+                    }}>
+                    <Text style={{ fontWeight: 'bold' }}>
                       <MaterialCommunityIcons name="close-circle" size={20} />
                     </Text>
                   </TouchableOpacity>
@@ -320,43 +401,63 @@ const concluirProcesso = async (processoID) => {
               )}
             />
           )}
-          <TouchableOpacity onPress={adicionarArquivo} style={estilo.botaoArquivo}>
+          <TouchableOpacity
+            onPress={adicionarArquivo}
+            style={estilo.botaoArquivo}>
             <Text>
-              <MaterialCommunityIcons name="paperclip" size={20} /> Adicionar Arquivo
+              <MaterialCommunityIcons name="paperclip" size={20} /> Adicionar
+              Arquivo
             </Text>
           </TouchableOpacity>
         </View>
 
-
-      <View style={estilo.viewbotoes}>
+        <View style={estilo.viewbotoes}>
           {/* EXCLUIR */}
-          <TouchableOpacity style={estilo.botao} onPress={() => excluirProcesso(processoID)}>
-            <MaterialCommunityIcons name="text-box-remove" size={20} color="#fff" style={estilo.icon} />
-            <Text style={{color: 'white'}}>Excluir</Text>
+          <TouchableOpacity
+            style={estilo.botao}
+            onPress={() => excluirProcesso(processoID)}>
+            <MaterialCommunityIcons
+              name="text-box-remove"
+              size={20}
+              color="#fff"
+              style={estilo.icon}
+            />
+            <Text style={{ color: 'white' }}>Excluir</Text>
           </TouchableOpacity>
 
           {/* SALVAR */}
-          <TouchableOpacity style={estilo.botao} onPress={() => atualizarProcesso(processoID)}>
-            <MaterialCommunityIcons name="text-box" size={20} color="#fff" style={estilo.icon} />
-            <Text style={{color: 'white'}}>Salvar</Text>
+          <TouchableOpacity
+            style={estilo.botao}
+            onPress={() => atualizarProcesso(processoID)}>
+            <MaterialCommunityIcons
+              name="text-box"
+              size={20}
+              color="#fff"
+              style={estilo.icon}
+            />
+            <Text style={{ color: 'white' }}>Salvar</Text>
           </TouchableOpacity>
 
           {/* CONCLUIR PROCESSO */}
-          <TouchableOpacity style={estilo.botao} onPress={() => concluirProcesso(processoID)}>
-            <MaterialCommunityIcons name="text-box-check" size={20} color="#fff" style={estilo.icon} />
-            <Text style={{color: 'white'}}>Concluir</Text>
+          <TouchableOpacity
+            style={estilo.botao}
+            onPress={() => concluirProcesso(processoID)}>
+            <MaterialCommunityIcons
+              name="text-box-check"
+              size={20}
+              color="#fff"
+              style={estilo.icon}
+            />
+            <Text style={{ color: 'white' }}>Concluir</Text>
           </TouchableOpacity>
-          
-      </View>
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const estilo = StyleSheet.create({
- container_principal: {
-
-  },
+  container_principal: {},
   Status: {
     marginTop: 15,
     height: 30,
@@ -377,7 +478,7 @@ const estilo = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 45,
   },
-  avatar: {   
+  avatar: {
     width: 60,
     height: 60,
     borderRadius: 50,
@@ -393,7 +494,7 @@ const estilo = StyleSheet.create({
     fontWeight: 'bold',
   },
   nome: {
-    fontSize: 14
+    fontSize: 14,
   },
   container_imput: {
     marginTop: 10,
@@ -401,7 +502,7 @@ const estilo = StyleSheet.create({
     alignItems: 'center',
   },
   imput: {
-    width: 375  ,
+    width: 375,
     alignSelf: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
@@ -410,54 +511,52 @@ const estilo = StyleSheet.create({
     marginBottom: 10,
   },
 
+  // Styles Selecionar Tipo de processo
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  closeButton: {
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
 
-
-// Styles Selecionar Tipo de processo
-modalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-},
-modalContent: {
-  width: 300,
-  padding: 20,
-  backgroundColor: 'white',
-  borderRadius: 10,
-},
-modalTitle: {
-  fontSize: 18,
-  fontWeight: 'bold',
-  textAlign: 'center',
-},
-modalItem: {
-  padding: 10,
-  borderBottomWidth: 1,
-  borderColor: '#ccc',
-},
-closeButton: {
-  backgroundColor: '#000',
-  padding: 10,
-  borderRadius: 5,
-  alignItems: 'center',
-},
-
-botaoArquivo: {
-  backgroundColor: '#bbb',
-  padding: 10,
-  borderRadius: 10,
-  alignItems: 'center',
-},
-iconButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#333',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 20,
-  alignSelf: 'center',
-},
-icon: {
+  botaoArquivo: {
+    backgroundColor: '#bbb',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  iconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#333',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  icon: {
     marginRight: 10,
   },
 
@@ -466,7 +565,7 @@ icon: {
     height: 50,
     width: 375,
     flexDirection: 'row',
-    justifyContent: 'space-around'
+    justifyContent: 'space-around',
   },
   botao: {
     flexDirection: 'row',
