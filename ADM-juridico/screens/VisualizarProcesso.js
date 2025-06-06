@@ -183,7 +183,7 @@ export default function VisualizarProcesso({ route, navigation }) {
         FotoCliente: photoCliente,
       };
 
-      await set(processoRef, atualizacaoData);
+      await update(processoRef, atualizacaoData);
 
       console.log('Processo atualizado com sucesso!');
     } catch (error) {
@@ -238,7 +238,7 @@ export default function VisualizarProcesso({ route, navigation }) {
       {/* STATUS BAR */}
       <TouchableOpacity
         style={estilo.Status}
-        onPress={() => navigation.navigate('TelaStatus')}>
+        onPress={() => navigation.navigate('TelaStatus', { processoID })}>
         <Text style={{ marginTop: 5, marginLeft: 20 }}>Status:</Text>
         <Text style={{ marginTop: 5, marginRight: 20, marginLeft: 5 }}>
           Em Andamento
