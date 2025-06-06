@@ -10,6 +10,7 @@ import TelaClientes from './screens/TelaClientes';
 import TelaListaProcessos from './screens/ListaProcessosFeitos';
 import TelaCadastrarProcesso from './screens/CadastrarProcesso'
 import VisualizarProcesso from './screens/VisualizarProcesso'
+import Status from './screens/status'
 
 import TelaSupaTeste from './supabaseTESTE'
 
@@ -32,6 +33,7 @@ export default function App() {
         <Stack.Screen name ="TelaListaProcessos" component={TelaListaProcessos} options={{title: 'Lista dos Processos', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaCadastrarProcesso" component={TelaCadastrarProcesso} options={{title: 'Cadastrar Processo', headerTitleAlign: 'center'}} />
         <Stack.Screen name ="TelaVisualizarProcesso" component={VisualizarProcesso} options={{title: 'Visualizar Processo', headerTitleAlign: 'center'}} />
+        <Stack.Screen name ="TelaStatus" component={Status} options={{title: 'Status do Processo', headerTitleAlign: 'center'}} />
 
 
         <Stack.Screen name ="TelaSupaTeste" component={TelaSupaTeste} options={{title: 'supa', headerTitleAlign: 'center'}} />

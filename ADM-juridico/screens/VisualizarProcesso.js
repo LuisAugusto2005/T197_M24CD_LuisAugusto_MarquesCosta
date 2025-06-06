@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, TextInput, Image, FlatList, Linking, Modal, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, ScrollView, Text, TextInput, Image, FlatList, Linking, Modal, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getDatabase, ref, get, set, child, remove, push, update } from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
@@ -54,55 +54,62 @@ export default function VisualizarProcesso({ route, navigation }) {
   }, [processoID]);
 
   const adicionarArquivo = async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: 'application/pdf',
+  const result = await DocumentPicker.getDocumentAsync({
+    type: 'application/pdf',
+  });
+
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    const file = result.assets[0];
+    setArquivos((prev) => [...prev, file]); // Adiciona localmente
+    await url(file);  // Passa o arquivo direto
+  }
+};
+
+const url = async (file) => {
+  if (!file.url) {
+    try {
+      const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const fileName = `documento_${Date.now()}_${file.name}`;
+      const buffer = Buffer.from(fileBase64, 'base64');
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from('documentos')
+        .upload(fileName, buffer, {
+          contentType: 'application/pdf',
+          upsert: true,
         });
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        const fileComUrl = await url(file);
-        setArquivos((prev) => [...prev, fileComUrl]); // Adiciona localmente
+      if (uploadError) {
+        console.error('Erro ao enviar PDF:', uploadError.message);
+        return;
       }
-    };
 
-  const url = async (file) => {
-      if(file.url == null){
-        try {
-          const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-            });
+      const { data: publicData } = await supabase
+        .storage
+        .from('documentos')
+        .getPublicUrl(fileName);
 
-          const fileName = `documento_${Date.now()}_${file.name}`;
-          const buffer = Buffer.from(fileBase64, 'base64');
+      if (publicData?.publicUrl) {
+        file.url = publicData.publicUrl;
 
-          const { data: uploadData, error: uploadError } = await supabase
-            .storage
-            .from('documentos')
-            .upload(fileName, buffer, {
-              contentType: 'application/pdf',
-              upsert: true, // opcional, mas evita erro se o nomeCliente já existir
-          });
-
-          if (uploadError) {
-            console.error('Erro ao enviar PDF:', uploadError.message);
-            return(file);
-          }
-
-          const { data: publicData } = await supabase
-            .storage
-            .from('documentos')
-            .getPublicUrl(fileName);
-
-          if (publicData?.publicUrl) {
-            file.url = publicData.publicUrl
-          }
-          console.log('Url Implementada no arquivo: ' + file.name)
-        } catch (err) {
-            console.error('Erro ao processar arquivo:', err.message);
-          }
+        // Atualiza o estado com a nova URL
+        setArquivos((prev) => 
+          prev.map((f) => 
+            f.uri === file.uri ? { ...f, url: publicData.publicUrl } : f
+          )
+        );
+        console.log('Url implementada no arquivo:', file.name);
       }
-    return(file);
+    } catch (err) {
+      console.error('Erro ao processar arquivo:', err.message);
+    }
   }
+};
+
 
   const excluirProcesso = async (processoID) => {
     Alert.alert(
@@ -158,10 +165,12 @@ export default function VisualizarProcesso({ route, navigation }) {
   return (
     <ScrollView style={estilo.container_principal}>
 
+          {/* NUMERO */}
         <Text style={estilo.numero}>{'[ ' + numero + ' ]'}</Text>
 
-          <TouchableOpacity style={estilo.Status}> 
-           <Text style={{marginTop: 5, marginRight: 5, marginLeft: 20, }}>
+          {/* STATUS BAR */}
+          <TouchableOpacity style={estilo.Status} onPress={() => navigation.navigate('TelaStatus')}> 
+           <Text style={{marginTop: 5, marginLeft: 20, }}>
               Status: 
            </Text>
            <Text style={{marginTop: 5, marginRight: 20, marginLeft: 5, }}>
@@ -259,8 +268,9 @@ export default function VisualizarProcesso({ route, navigation }) {
               keyExtractor={(item, index) => `${item.name}_${index}`}
               renderItem={({ item, index }) => (
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <Text style={{ flex: 1 }} onPress={() =>Linking.openURL(item.url)}>
-                    <MaterialCommunityIcons name="folder" size={20} /> {item.name}
+                  <Text style={{ flex: 1 }} onPress={() => { item.url ? Linking.openURL(item.url) : Alert.alert('Atenção', 'O arquivo ainda está sendo enviado.');}}>
+                    <MaterialCommunityIcons name="folder" size={20} /> {item.url ? item.name : <ActivityIndicator size={15} color="black" paddingHorizontal={10} />}
+
                   </Text>
                   <TouchableOpacity onPress={() => {
                     setArquivos(prev => prev.filter((_, i) => i !== index));
