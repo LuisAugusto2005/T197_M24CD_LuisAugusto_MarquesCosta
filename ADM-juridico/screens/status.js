@@ -13,11 +13,15 @@ export default function TelaStatus({ route }) {
   const { processoID } = route.params;
 
   const [fases, setFases] = useState({
-    'Petição Inicial Enviada': { concluido: false, data: null },
-    'Citação do Réu': { concluido: false, data: null },
-    Contestação: { concluido: false, data: null },
-    Julgamento: { concluido: false, data: null },
-  });
+  'Fase Postulatória (ou Fase de Conhecimento)': { concluido: false, data: null },
+  'Fase Saneadora': { concluido: false, data: null },
+  'Fase de Instrução': { concluido: false, data: null },
+  'Fase Decisória': { concluido: false, data: null },
+  'Fase Recursal': { concluido: false, data: null },
+  'Fase de Cumprimento de Sentença / Execução': { concluido: false, data: null },
+  'Fase Final (Arquivamento)': { concluido: false, data: null },
+});
+
 
   useEffect(() => {
     const db = getDatabase();
