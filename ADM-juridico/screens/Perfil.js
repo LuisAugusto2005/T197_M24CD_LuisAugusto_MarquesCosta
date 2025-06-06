@@ -27,13 +27,18 @@ export default function Perfil({ route, navigation }) {
         photoURL: photoURL,
       })}>
         
-        <MaterialCommunityIcons name="pencil" size={20} color="#fff" style={perfilStyles.icon} />
+        <MaterialCommunityIcons name="text-box-plus" size={20} color="#fff" style={perfilStyles.icon} />
         <Text style={styles.buttonText}>Cadastrar Processo</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaListaProcessos')}>
-        <MaterialCommunityIcons name="magnify" size={20} color="#fff" style={perfilStyles.icon} />
+        <MaterialCommunityIcons name="text-box-search" size={20} color="#fff" style={perfilStyles.icon} />
         <Text style={styles.buttonText}>Lista de Processos</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={perfilStyles.iconButton} onPress={() => navigation.navigate('TelaListaProcessosConcluidos')}>
+        <MaterialCommunityIcons name="text-box-check" size={20} color="#fff" style={perfilStyles.icon} />
+        <Text style={styles.buttonText}>Processos Concluidos</Text>
       </TouchableOpacity>
     </View>
   );
@@ -67,6 +72,7 @@ const perfilStyles = StyleSheet.create({
     marginBottom: 20,
   },
   iconButton: {
+    width: 200,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#333',

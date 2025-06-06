@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getDatabase, ref, get, set, child, remove, push, update } from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import uuid from 'react-native-uuid';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../supabaseconfig';
 import { Buffer } from 'buffer';
@@ -16,7 +17,6 @@ export default function VisualizarProcesso({ route, navigation }) {
   const [cpf, setCpf] = useState('');
   const [descricao, setDescricao] = useState('');
   const [tipo, setTipo] = useState('');
-  const [oldArquivos, oldSetArquivos] = useState([]);
   const [arquivos, setArquivos] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const tiposProcesso = [
@@ -48,7 +48,6 @@ export default function VisualizarProcesso({ route, navigation }) {
       setTipo(snapshot.val() || '');
     });
     get(child(dbRef, `processos/${processoID}/arquivos`)).then(snapshot => {
-      oldSetArquivos(snapshot.val() || []);
       setArquivos(snapshot.val() || []);
     });
   }, [processoID]);
@@ -160,6 +159,44 @@ const url = async (file) => {
       console.error('Erro ao atualizar processo:', error);
     }
 };
+
+const concluirProcesso = async (processoID) => {
+    Alert.alert(
+    'Confirmar conclusão do processo',
+    'Este processo sera rotulado como finalizado (Nenhuma alteração sera aceita)',
+      [
+        { text: 'Cancelar', },
+        { 
+          text: 'Concluir',
+          onPress: async () => {
+            try {
+              const db = getDatabase();
+
+              const dadosFinais = {
+                numero: numero,
+                nomeCliente: nomeCliente,
+                cpfCliente: cpf,
+                descricao: descricao,
+                tipo: tipo,
+                arquivos: arquivos,
+                advogado: advogado,
+                FotoDoAvogado: photoAdvogado,
+              };
+
+              const userId = uuid.v4();
+              await set(ref(db, 'processosConcluidos/' + userId), dadosFinais);
+              await remove(ref(db, `processos/${processoID}`));
+
+              console.log('Processo concluido com sucesso!');
+              navigation.goBack();
+            } catch (error) {
+              console.error('Erro ao concluir processo:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
 
 
   return (
@@ -290,17 +327,27 @@ const url = async (file) => {
           </TouchableOpacity>
         </View>
 
-      </View>
+
       <View style={estilo.viewbotoes}>
           {/* EXCLUIR */}
           <TouchableOpacity style={estilo.botao} onPress={() => excluirProcesso(processoID)}>
+            <MaterialCommunityIcons name="text-box-remove" size={20} color="#fff" style={estilo.icon} />
             <Text style={{color: 'white'}}>Excluir</Text>
           </TouchableOpacity>
 
           {/* SALVAR */}
           <TouchableOpacity style={estilo.botao} onPress={() => atualizarProcesso(processoID)}>
+            <MaterialCommunityIcons name="text-box" size={20} color="#fff" style={estilo.icon} />
             <Text style={{color: 'white'}}>Salvar</Text>
           </TouchableOpacity>
+
+          {/* CONCLUIR PROCESSO */}
+          <TouchableOpacity style={estilo.botao} onPress={() => concluirProcesso(processoID)}>
+            <MaterialCommunityIcons name="text-box-check" size={20} color="#fff" style={estilo.icon} />
+            <Text style={{color: 'white'}}>Concluir</Text>
+          </TouchableOpacity>
+          
+      </View>
       </View>
     </ScrollView>
   );
@@ -417,16 +464,19 @@ icon: {
   // Styles botoes finais
   viewbotoes: {
     height: 50,
+    width: 375,
     flexDirection: 'row',
     justifyContent: 'space-around'
   },
   botao: {
+    flexDirection: 'row',
     marginTop: 5,
     height: 40,
-    width: 100,
+    width: 115,
     backgroundColor: 'black',
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });
