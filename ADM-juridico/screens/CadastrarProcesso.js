@@ -112,6 +112,13 @@ export default function CadastrarProcesso({ route, navigation }) {
     }
   };
 
+  const getImageMimeType = (uri) => {
+    if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
+    if (uri.endsWith('.png')) return 'image/png';
+    if (uri.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg'; // padrão normal (preguiça de melhorar lol)
+  };
+
   const uploadImagemCliente = async () => {
     if (!photoCliente) return null;
 
@@ -121,12 +128,13 @@ export default function CadastrarProcesso({ route, navigation }) {
       });
 
       const buffer = Buffer.from(fileBase64, 'base64');
-      const fileName = `cliente_${Date.now()}.jpg`; // ou .png dependendo da imagem
+      const fileName = `cliente_${Date.now()}.jpg`;
+      const mimeType = getImageMimeType(photoCliente); // Detecta o pelo getImageMimeType
 
       const { error: uploadError } = await supabase.storage
-        .from('clientes') // crie esse bucket no Supabase se ainda não existir
+        .from('clientes')
         .upload(fileName, buffer, {
-          contentType: imageType, // ou 'image/png' dependendo da imagem
+          contentType: mimeType,
           upsert: true,
         });
 
