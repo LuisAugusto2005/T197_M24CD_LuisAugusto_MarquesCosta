@@ -12,15 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function TelaStatus({ route }) {
   const { processoID } = route.params;
 
-  const [fases, setFases] = useState({
-  'Fase Postulatória (ou Fase de Conhecimento)': { concluido: false, data: null },
-  'Fase Saneadora': { concluido: false, data: null },
-  'Fase de Instrução': { concluido: false, data: null },
-  'Fase Decisória': { concluido: false, data: null },
-  'Fase Recursal': { concluido: false, data: null },
-  'Fase de Cumprimento de Sentença / Execução': { concluido: false, data: null },
-  'Fase Final (Arquivamento)': { concluido: false, data: null },
-});
+  const [fases, setFases] = useState({});
 
 
   useEffect(() => {

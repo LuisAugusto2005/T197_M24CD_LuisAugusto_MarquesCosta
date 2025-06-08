@@ -38,17 +38,49 @@ export default function VisualizarProcesso({ route, navigation }) {
   const [nomeCliente, setNomeCliente] = useState('');
   const [cpf, setCpf] = useState('');
   const [descricao, setDescricao] = useState('');
+  const [area, setArea] = useState('');
   const [tipo, setTipo] = useState('');
   const [arquivos, setArquivos] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTipoVisible, setModalTipoVisible] = useState(false);
   const [photoCliente, setPhotoCliente] = useState('');
 
-  const tiposProcesso = [
-    'Processo de conhecimento',
-    'Processo cautelar',
-    'Processo de execução',
-    'Outros',
-  ];
+  const tipoProcesso = {
+  'Direito Civil': [
+    'Inventário',
+    'Divórcio',
+    'Cobrança',
+    'Danos Morais',
+    'Responsabilidade Civil',
+  ],
+  'Direito Penal': [
+    'Homicídio',
+    'Furto/Roubo',
+    'Tráfico de Drogas',
+    'Crimes Contra a Honra',
+    'Violência Doméstica',
+  ],
+  'Direito Trabalhista': [
+    'Rescisão Contratual',
+    'Horas Extras',
+    'Assédio Moral',
+    'Verbas Rescisórias',
+    'Reintegração ao Emprego',
+  ],
+  'Direito Tributário': [
+    'Execução Fiscal',
+    'Isenção de Impostos',
+    'Compensação Tributária',
+    'Anulação de Débito',
+    'Planejamento Tributário',
+  ],
+  'Direito Constitucional': [
+    'Mandado de Segurança',
+    'Ação Direta de Inconstitucionalidade (ADI)',
+    'Ação Popular',
+    'Habeas Corpus',
+    'Direitos Fundamentais',
+  ],
+};
 
   useEffect(() => {
     if (!processoID) return;
@@ -70,7 +102,10 @@ export default function VisualizarProcesso({ route, navigation }) {
     get(child(dbRef, `processos/${processoID}/descricao`)).then((snapshot) => {
       setDescricao(snapshot.val() || '');
     });
-    get(child(dbRef, `processos/${processoID}/tipo`)).then((snapshot) => {
+    get(child(dbRef, `processos/${processoID}/area/area`)).then((snapshot) => {
+      setArea(snapshot.val() || '');
+    });
+    get(child(dbRef, `processos/${processoID}/area/tipo`)).then((snapshot) => {
       setTipo(snapshot.val() || '');
     });
     get(child(dbRef, `processos/${processoID}/arquivos`)).then((snapshot) => {
@@ -82,8 +117,6 @@ export default function VisualizarProcesso({ route, navigation }) {
       }
     );
   }, [processoID]);
-
-  console.log(photoCliente);
 
   const adicionarArquivo = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -300,43 +333,50 @@ export default function VisualizarProcesso({ route, navigation }) {
           multiline
         />
 
-        {/* SELECIONAR TIPO DE PROCESSO */}
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={estilo.imput}>
-          <Text>{tipo || 'Selecionar tipo do processo'}</Text>
-        </TouchableOpacity>
-
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setModalVisible(false)}>
-          <View style={estilo.modalContainer}>
-            <View style={estilo.modalContent}>
-              <Text style={estilo.modalTitle}>Selecionar Tipo de Processo</Text>
-              <FlatList
-                data={tiposProcesso}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={estilo.modalItem}
-                    onPress={() => {
-                      setTipo(item);
-                      setModalVisible(false);
-                    }}>
-                    <Text>{item}</Text>
-                  </TouchableOpacity>
-                )}
-              />
+        {/* Modal para selecionar o area do processo */}
               <TouchableOpacity
-                style={estilo.closeButton}
-                onPress={() => setModalVisible(false)}>
-                <Text style={{ color: 'white' }}>Fechar</Text>
+                onPress={() => Alert.alert('Erro', 'Não é possivel alterar a area do processo após o cadastro inicial')}
+                style={estilo.imput}>
+                <Text>{area}</Text>
               </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+        
+              {/* Modal para selecionar o tipo do processo */}
+              <TouchableOpacity
+                onPress={() => area ? setModalTipoVisible(true) : Alert.alert('Erro', 'Selecione a area do processo primeiro')}
+                style={estilo.imput}>
+                <Text>{tipo || 'Selecionar tipo do processo'}</Text>
+              </TouchableOpacity>
+        
+              <Modal
+                visible={modalTipoVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setModalTipoVisible(false)}>
+                <View style={estilo.modalContainer}>
+                  <View style={estilo.modalContent}>
+                    <Text style={estilo.modalTitle}>Selecionar Tipo de Processo</Text>
+                    <FlatList
+                      data={tipoProcesso[area]}
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={estilo.modalItem}
+                          onPress={() => {
+                            setTipo(item);
+                            setModalTipoVisible(false);
+                          }}>
+                          <Text>{item}</Text>
+                        </TouchableOpacity>
+                      )}
+                    />
+                    <TouchableOpacity
+                      style={estilo.closeButton}
+                      onPress={() => setModalTipoVisible(false)}>
+                      <Text style={{ color: 'white' }}>Fechar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
 
         {/* DOCUMENTOS */}
         <Text

@@ -28,7 +28,6 @@ import { MaterialCommunityIcons } from 'react-native-vector-icons';
 
 export default function CadastrarProcesso({ route, navigation }) {
   const { nome, photoURL } = route.params || {};
-  // console.log("NOME: ", nome)
 
   const [numero, setNumero] = useState('');
   const [nomeCliente, setNomeCliente] = useState('');
@@ -39,10 +38,9 @@ export default function CadastrarProcesso({ route, navigation }) {
   const [photoCliente, setPhotoCliente] = useState(null);
   const [arquivos, setArquivos] = useState([]);
   const [arquivosName, setArquivosName] = useState([]);
-  
+
   const [modalAreaVisible, setModalAreaVisible] = useState(false);
   const [modalTipoVisible, setModalTipoVisible] = useState(false);
-
 
   const areaProcesso = [
     'Direito Civil',
@@ -120,7 +118,7 @@ export default function CadastrarProcesso({ route, navigation }) {
           encoding: FileSystem.EncodingType.Base64,
         });
 
-        const fileName = `documento_${Date.now()}_${file.name}`;
+        const fileName = documento_${Date.now()}_${file.name};
         const buffer = Buffer.from(fileBase64, 'base64');
 
         const { error: uploadError } = await supabase.storage
@@ -156,13 +154,6 @@ export default function CadastrarProcesso({ route, navigation }) {
     }
   };
 
-  const getImageMimeType = (uri) => {
-    if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
-    if (uri.endsWith('.png')) return 'image/png';
-    if (uri.endsWith('.webp')) return 'image/webp';
-    return 'image/jpeg'; // padrão normal (preguiça de melhorar lol)
-  };
-
   const uploadImagemCliente = async () => {
     if (!photoCliente) return null;
 
@@ -172,13 +163,12 @@ export default function CadastrarProcesso({ route, navigation }) {
       });
 
       const buffer = Buffer.from(fileBase64, 'base64');
-      const fileName = `cliente_${Date.now()}.jpg`;
-      const mimeType = getImageMimeType(photoCliente); // Detecta o pelo getImageMimeType
+      const fileName = cliente_${Date.now()}.jpg; // ou .png dependendo da imagem
 
       const { error: uploadError } = await supabase.storage
-        .from('clientes')
+        .from('clientes') // crie esse bucket no Supabase se ainda não existir
         .upload(fileName, buffer, {
-          contentType: mimeType,
+          contentType: imageType, // ou 'image/png' dependendo da imagem
           upsert: true,
         });
 
@@ -207,55 +197,6 @@ export default function CadastrarProcesso({ route, navigation }) {
       return;
     }
 
-    let fasesIniciais = {};
-      switch (area) {
-    case 'Direito Civil':
-      fasesIniciais = {
-        'Petição Inicial': { concluido: false, data: null },
-        'Citação e Contestação': { concluido: false, data: null },
-        'Audiência de Conciliação': { concluido: false, data: null },
-        'Sentença': { concluido: false, data: null },
-        'Cumprimento de Sentença': { concluido: false, data: null }
-      };
-      break;
-    case 'Direito Penal':
-      fasesIniciais = {
-        'Inquérito Policial': { concluido: false, data: null },
-        'Denúncia ou Queixa-Crime': { concluido: false, data: null },
-        'Instrução Criminal': { concluido: false, data: null },
-        'Julgamento': { concluido: false, data: null },
-        'Execução da Pena': { concluido: false, data: null }
-      };
-      break;
-    case 'Direito Trabalhista':
-      fasesIniciais = {
-        'Petição Inicial': { concluido: false, data: null },
-        'Audiência Inicial': { concluido: false, data: null },
-        'Produção de Provas': { concluido: false, data: null },
-        'Sentença': { concluido: false, data: null },
-        'Execução Trabalhista': { concluido: false, data: null }
-      };
-      break;
-    case 'Direito Tributário':
-      fasesIniciais = {
-        'Notificação Fiscal': { concluido: false, data: null },
-        'Impugnação Administrativa': { concluido: false, data: null },
-        'Decisão Administrativa': { concluido: false, data: null },
-        'Ação Judicial': { concluido: false, data: null },
-        'Execução Fiscal': { concluido: false, data: null }
-      };
-      break;
-    case 'Direito Constitucional':
-      fasesIniciais = {
-        'Abertura do Processo Administrativo': { concluido: false, data: null },
-        'Defesa Prévia': { concluido: false, data: null },
-        'Instrução': { concluido: false, data: null },
-        'Decisão Administrativa': { concluido: false, data: null },
-        'Recurso ou Judicialização': { concluido: false, data: null }
-      };
-      break;
-  }
-
     try {
       // Salvar no Firebase Realtime Database
       const urlImagemCliente = await uploadImagemCliente();
@@ -265,7 +206,6 @@ export default function CadastrarProcesso({ route, navigation }) {
         nomeCliente: nomeCliente,
         cpfCliente: cpf,
         descricao,
-        fases: fasesIniciais,
         arquivos: arquivos,
         dataCriacao: new Date().toISOString(),
         advogado: nome,
@@ -275,7 +215,7 @@ export default function CadastrarProcesso({ route, navigation }) {
 
       const userId = uuid.v4();
       await set(ref(db, 'processos/' + userId), novoProcesso);
-      await set(ref(db, `processos/${userId}/area`), {area, tipo});
+      await set(ref(db, processos/${userId}/area/tipo), {area, tipo});
       Alert.alert('Sucesso', 'Processo aberto com sucesso');
       navigation.goBack();
     } catch (err) {
@@ -327,81 +267,81 @@ export default function CadastrarProcesso({ route, navigation }) {
       />
 
       {/* Modal para selecionar o area do processo */}
+      <TouchableOpacity
+        onPress={() => setModalAreaVisible(true)}
+        style={estilo.input}>
+        <Text>{area || 'Selecionar area do processo'}</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalAreaVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalAreaVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecionar Area do Processo</Text>
+            <FlatList
+              data={areaProcesso}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setArea(item);
+                    setTipo('');
+                    setModalAreaVisible(false);
+                  }}>
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
             <TouchableOpacity
-              onPress={() => setModalAreaVisible(true)}
-              style={estilo.input}>
-              <Text>{area || 'Selecionar area do processo'}</Text>
+              style={styles.closeButton}
+              onPress={() => setModalAreaVisible(false)}>
+              <Text style={{ color: 'white' }}>Fechar</Text>
             </TouchableOpacity>
-      
-            <Modal
-              visible={modalAreaVisible}
-              animationType="slide"
-              transparent={true}
-              onRequestClose={() => setModalAreaVisible(false)}>
-              <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Selecionar Area do Processo</Text>
-                  <FlatList
-                    data={areaProcesso}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setArea(item);
-                          setTipo('');
-                          setModalAreaVisible(false);
-                        }}>
-                        <Text>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setModalAreaVisible(false)}>
-                    <Text style={{ color: 'white' }}>Fechar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-      
-            {/* Modal para selecionar o tipo do processo */}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal para selecionar o tipo do processo */}
+      <TouchableOpacity
+        onPress={() => area ? setModalTipoVisible(true) : Alert.alert('Erro', 'Selecione a area do processo primeiro')}
+        style={estilo.input}>
+        <Text>{tipo || 'Selecionar tipo do processo'}</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalTipoVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalTipoVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecionar Tipo de Processo</Text>
+            <FlatList
+              data={tipoProcesso[area]}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setTipo(item);
+                    setModalTipoVisible(false);
+                  }}>
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
             <TouchableOpacity
-              onPress={() => area ? setModalTipoVisible(true) : Alert.alert('Erro', 'Selecione a area do processo primeiro')}
-              style={estilo.input}>
-              <Text>{tipo || 'Selecionar tipo do processo'}</Text>
+              style={styles.closeButton}
+              onPress={() => setModalTipoVisible(false)}>
+              <Text style={{ color: 'white' }}>Fechar</Text>
             </TouchableOpacity>
-      
-            <Modal
-              visible={modalTipoVisible}
-              animationType="slide"
-              transparent={true}
-              onRequestClose={() => setModalTipoVisible(false)}>
-              <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Selecionar Tipo de Processo</Text>
-                  <FlatList
-                    data={tipoProcesso[area]}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setTipo(item);
-                          setModalTipoVisible(false);
-                        }}>
-                        <Text>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setModalTipoVisible(false)}>
-                    <Text style={{ color: 'white' }}>Fechar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+          </View>
+        </View>
+      </Modal>
 
       <Text style={{ marginTop: 20, marginBottom: 5 }}>
         Documentos do cliente:
@@ -421,7 +361,7 @@ export default function CadastrarProcesso({ route, navigation }) {
         ) : (
           <FlatList
             data={arquivos}
-            keyExtractor={(item, index) => `${item.name}_${index}`}
+            keyExtractor={(item, index) => ${item.name}_${index}}
             renderItem={({ item, index }) => (
               <View
                 style={{
